@@ -1,0 +1,374 @@
+/* =====================================================
+   ESTOQUE - Rei Motors
+   ===================================================== */
+
+/* ===== BREADCRUMB ===== */
+
+.breadcrumb {
+    background-color: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-md) 0;
+}
+
+.breadcrumb__lista {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+}
+
+.breadcrumb__item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-tertiary);
+    margin-bottom: 0;
+}
+
+.breadcrumb__item a {
+    color: var(--color-text-secondary);
+    transition: color var(--transition-fast);
+}
+
+.breadcrumb__item a:hover {
+    color: var(--color-accent-primary);
+}
+
+.breadcrumb__item::after {
+    content: '/';
+    color: var(--color-border-light);
+}
+
+.breadcrumb__item:last-child::after {
+    display: none;
+}
+
+.breadcrumb__item:last-child {
+    color: var(--color-accent-primary);
+}
+
+/* ===== FILTROS ===== */
+
+.filtros {
+    background-color: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-xl) 0;
+}
+
+.filtros__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+}
+
+.filtros__titulo {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.filtros__toggle {
+    display: none;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: none;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.filtros__toggle:hover {
+    border-color: var(--color-accent-primary);
+    color: var(--color-accent-primary);
+}
+
+.filtros__form {
+    display: block;
+}
+
+.filtros__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--spacing-md);
+    align-items: end;
+}
+
+.filtro__grupo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.filtro__grupo label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.filtro__grupo input,
+.filtro__grupo select {
+    background-color: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    height: 40px;
+    transition: border-color var(--transition-fast);
+    width: 100%;
+}
+
+.filtro__grupo input:focus,
+.filtro__grupo select:focus {
+    outline: none;
+    border-color: var(--color-accent-primary);
+}
+
+.filtro__grupo select option {
+    background-color: var(--color-bg-secondary);
+}
+
+.filtros__acoes {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.filtros__acoes .btn {
+    height: 40px;
+    padding: 0 var(--spacing-lg);
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+}
+
+.btn--ghost {
+    background: none;
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.btn--ghost:hover {
+    border-color: var(--color-text-secondary);
+    color: var(--color-text-primary);
+    background: none;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ===== RESULTADOS ===== */
+
+.estoque {
+    padding: var(--spacing-3xl) 0;
+}
+
+.estoque__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-2xl);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.estoque__info {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.estoque__info strong {
+    color: var(--color-accent-primary);
+    font-size: var(--font-size-base);
+}
+
+.estoque__ordenar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.estoque__ordenar select {
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+}
+
+.estoque__ordenar select:focus {
+    outline: none;
+    border-color: var(--color-accent-primary);
+}
+
+/* ===== SEM RESULTADOS ===== */
+
+.sem-resultados {
+    text-align: center;
+    padding: var(--spacing-4xl) var(--spacing-lg);
+    color: var(--color-text-secondary);
+}
+
+.sem-resultados__icone {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.4;
+}
+
+.sem-resultados h3 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text-primary);
+}
+
+.sem-resultados p {
+    max-width: 400px;
+    margin: 0 auto var(--spacing-xl);
+}
+
+/* ===== PAGINAÇÃO ===== */
+
+.paginacao {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--spacing-3xl);
+}
+
+.paginacao__lista {
+    display: flex;
+    gap: var(--spacing-sm);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.paginacao__item {
+    margin: 0;
+}
+
+.paginacao__link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-fast);
+    text-decoration: none;
+}
+
+.paginacao__link:hover {
+    border-color: var(--color-accent-primary);
+    color: var(--color-accent-primary);
+}
+
+.paginacao__link--ativo {
+    background-color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+    color: var(--color-bg-primary);
+    font-weight: var(--font-weight-bold);
+}
+
+.paginacao__link--ativo:hover {
+    background-color: var(--color-accent-secondary);
+    border-color: var(--color-accent-secondary);
+    color: var(--color-bg-primary);
+}
+
+.paginacao__link--desativado {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ===== FILTROS ATIVOS (tags) ===== */
+
+.filtros-ativos {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-lg);
+}
+
+.filtro-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background-color: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    color: var(--color-accent-primary);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+}
+
+/* ===== RESPONSIVO ===== */
+
+@media (max-width: 992px) {
+    .filtros__grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .filtros__toggle {
+        display: flex;
+    }
+
+    .filtros__form {
+        display: none;
+    }
+
+    .filtros__form.aberto {
+        display: block;
+        margin-top: var(--spacing-lg);
+    }
+
+    .filtros__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .estoque__header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .filtros__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filtros__acoes {
+        flex-direction: column;
+    }
+
+    .filtros__acoes .btn {
+        width: 100%;
+    }
+}

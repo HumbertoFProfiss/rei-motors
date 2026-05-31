@@ -1,0 +1,16 @@
+/* =====================================================
+   VITRINE - Rei Motors
+   ===================================================== */
+
+.vitrine {
+    background-color: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border);
+}
+
+/* ===== RESPONSIVO ===== */
+
+@media (max-width: 768px) {
+    .vitrine {
+        padding: var(--spacing-2xl) 0;
+    }
+}

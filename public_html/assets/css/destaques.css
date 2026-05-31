@@ -1,0 +1,22 @@
+/* =====================================================
+   DESTAQUES - Rei Motors
+   ===================================================== */
+
+.destaques {
+    background: linear-gradient(180deg, transparent, rgba(212, 175, 55, 0.05));
+}
+
+/* ===== VITRINE CTA ===== */
+
+.vitrine__cta {
+    text-align: center;
+    margin-top: var(--spacing-3xl);
+}
+
+/* ===== RESPONSIVO ===== */
+
+@media (max-width: 768px) {
+    .vitrine__cta .btn {
+        width: 100%;
+    }
+}

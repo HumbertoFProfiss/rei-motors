@@ -1,0 +1,176 @@
+/* =====================================================
+   FOOTER - Rei Motors
+   ===================================================== */
+
+.footer {
+    background-color: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border);
+    padding: var(--spacing-4xl) 0 var(--spacing-xl);
+}
+
+/* ===== GRID ===== */
+
+.footer__grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: var(--spacing-3xl);
+    margin-bottom: var(--spacing-3xl);
+}
+
+.footer__col h3 {
+    font-family: var(--font-display);
+    font-size: var(--font-size-xl);
+    color: var(--color-accent-primary);
+    margin-bottom: var(--spacing-lg);
+}
+
+.footer__col h4 {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.footer__col p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-sm);
+}
+
+.footer__col a {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    transition: color var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.footer__col a:hover {
+    color: var(--color-accent-primary);
+}
+
+/* ===== REDES SOCIAIS ===== */
+
+.footer__sociais {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.footer__sociais a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    width: fit-content;
+}
+
+.footer__sociais a:hover {
+    color: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+    background-color: rgba(212, 175, 55, 0.05);
+}
+
+/* ===== RODAPÉ INFERIOR ===== */
+
+.footer__bottom {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-xl);
+    text-align: center;
+}
+
+.footer__bottom p {
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-sm);
+    margin: 0;
+}
+
+.footer__admin-link {
+    display: inline-block;
+    margin-top: var(--spacing-md);
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.footer__admin-link:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+/* ===== WHATSAPP FLUTUANTE ===== */
+
+.whatsapp-flutuante {
+    position: fixed;
+    bottom: var(--spacing-2xl);
+    right: var(--spacing-2xl);
+    width: 60px;
+    height: 60px;
+    background-color: #25D366;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+    z-index: var(--z-fixed);
+    transition: all var(--transition-normal);
+    animation: pulse-whatsapp 2s ease-in-out infinite;
+}
+
+.whatsapp-flutuante:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 30px rgba(37, 211, 102, 0.6);
+}
+
+@keyframes pulse-whatsapp {
+    0%, 100% {
+        box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 30px rgba(37, 211, 102, 0.7);
+    }
+}
+
+/* ===== RESPONSIVO ===== */
+
+@media (max-width: 992px) {
+    .footer__grid {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-2xl);
+    }
+}
+
+@media (max-width: 576px) {
+    .footer__grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-xl);
+    }
+
+    .footer {
+        padding: var(--spacing-3xl) 0 var(--spacing-lg);
+    }
+
+    .whatsapp-flutuante {
+        bottom: var(--spacing-lg);
+        right: var(--spacing-lg);
+        width: 52px;
+        height: 52px;
+        font-size: 1.5rem;
+    }
+}

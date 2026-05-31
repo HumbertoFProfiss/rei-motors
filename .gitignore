@@ -1,0 +1,22 @@
+# Logs de erro do PHP
+logs/
+*.log
+
+# Ambiente local (não versionar arquivos de sessão)
+/public_html/sessions/
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Dependências externas (se usar composer no futuro)
+vendor/
+
+# Arquivos de deploy/build
+*.zip
+*.tar.gz

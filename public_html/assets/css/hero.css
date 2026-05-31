@@ -1,0 +1,162 @@
+/* =====================================================
+   HERO SECTION - Rei Motors
+   ===================================================== */
+
+.hero {
+    margin-top: 80px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 80px);
+    overflow: hidden;
+}
+
+/* ===== BACKGROUND ===== */
+
+.hero__background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+    z-index: -2;
+}
+
+.hero__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at bottom right, rgba(212, 175, 55, 0.1), transparent);
+    z-index: -1;
+}
+
+/* ===== CONTEÚDO ===== */
+
+.hero__content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: var(--spacing-3xl) 0;
+}
+
+.hero__text {
+    animation: slideInUp 1s ease-out;
+}
+
+.hero__title {
+    font-size: var(--font-size-5xl);
+    line-height: var(--line-height-tight);
+    margin-bottom: var(--spacing-lg);
+    background: linear-gradient(90deg, var(--color-accent-primary), var(--color-accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero__subtitle {
+    font-size: var(--font-size-xl);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-3xl);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: var(--line-height-relaxed);
+}
+
+/* ===== CTAs ===== */
+
+.hero__ctas {
+    display: flex;
+    gap: var(--spacing-lg);
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: slideInUp 1.2s ease-out;
+}
+
+.hero__ctas .btn {
+    min-width: 200px;
+}
+
+/* ===== RESPONSIVO ===== */
+
+@media (max-width: 992px) {
+    .hero {
+        min-height: auto;
+        padding: var(--spacing-4xl) 0;
+    }
+
+    .hero__title {
+        font-size: var(--font-size-4xl);
+    }
+
+    .hero__subtitle {
+        font-size: var(--font-size-lg);
+    }
+
+    .hero__ctas {
+        gap: var(--spacing-md);
+    }
+
+    .hero__ctas .btn {
+        min-width: auto;
+        flex: 1;
+        min-width: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        margin-top: 70px;
+        min-height: auto;
+        padding: var(--spacing-3xl) 0;
+    }
+
+    .hero__title {
+        font-size: var(--font-size-3xl);
+    }
+
+    .hero__subtitle {
+        font-size: var(--font-size-base);
+        margin-bottom: var(--spacing-2xl);
+    }
+
+    .hero__ctas {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .hero__ctas .btn {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        margin-top: 60px;
+        padding: var(--spacing-2xl) 0;
+    }
+
+    .hero__title {
+        font-size: var(--font-size-2xl);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .hero__subtitle {
+        font-size: var(--font-size-sm);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .hero__ctas {
+        gap: var(--spacing-sm);
+    }
+
+    .hero__ctas .btn {
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: var(--font-size-sm);
+    }
+}
