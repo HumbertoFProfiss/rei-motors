@@ -1,19 +1,9 @@
 -- Rei Motors DB Export
--- 2026-06-01 02:17:04
+-- 2026-06-01 02:21:26
 
 SET FOREIGN_KEY_CHECKS=0;
 
--- Tabela: banners_home
-TRUNCATE TABLE `banners_home`;
-
--- Tabela: carros_troca
-TRUNCATE TABLE `carros_troca`;
-
--- Tabela: clientes
-TRUNCATE TABLE `clientes`;
-
 -- Tabela: configuracoes
-TRUNCATE TABLE `configuracoes`;
 INSERT INTO `configuracoes` (`id`, `chave`, `valor`, `tipo`, `atualizado_em`) VALUES
 ('1', 'loja_nome', 'Rei Motors', 'texto', '2026-05-30 14:09:44'),
 ('2', 'loja_email', 'reimotorsoficial@gmail.com', 'texto', '2026-05-30 14:09:44'),
@@ -30,37 +20,11 @@ INSERT INTO `configuracoes` (`id`, `chave`, `valor`, `tipo`, `atualizado_em`) VA
 ('13', 'yt_url', 'https://youtube.com/@reimotors', 'texto', '2026-05-31 14:08:23'),
 ('14', 'taxa_juros_simulador', '1.49', 'texto', '2026-05-31 14:08:23');
 
--- Tabela: contas_pagar
-TRUNCATE TABLE `contas_pagar`;
-
--- Tabela: contas_receber
-TRUNCATE TABLE `contas_receber`;
-
--- Tabela: custos_veiculo
-TRUNCATE TABLE `custos_veiculo`;
-
--- Tabela: garantias_chamados
-TRUNCATE TABLE `garantias_chamados`;
-
--- Tabela: leads
-TRUNCATE TABLE `leads`;
-
--- Tabela: leads_historico
-TRUNCATE TABLE `leads_historico`;
-
--- Tabela: logs_acoes
-TRUNCATE TABLE `logs_acoes`;
-
--- Tabela: parcelas_financiamento
-TRUNCATE TABLE `parcelas_financiamento`;
-
 -- Tabela: usuarios
-TRUNCATE TABLE `usuarios`;
 INSERT INTO `usuarios` (`id`, `nome`, `email`, `senha`, `cpf`, `telefone`, `endereco`, `role`, `ativo`, `comissao_percentual`, `criado_em`, `atualizado_em`) VALUES
 ('1', 'Administrador', 'admin@reimotors.com', '$2y$12$b1uL067rje0yPJE0/IzDAOzF/v9PDAprbTIskefCtxsBT6SVETO4C', NULL, '149812549939', NULL, 'admin', '1', '5.00', '2026-05-30 14:09:44', '2026-05-31 14:06:06');
 
 -- Tabela: veiculos
-TRUNCATE TABLE `veiculos`;
 INSERT INTO `veiculos` (`id`, `marca`, `modelo`, `slug`, `ano`, `preco_venda`, `preco_custo`, `preco_tabela_fipe`, `quilometragem`, `combustivel`, `cambio`, `cor`, `descricao`, `status`, `destaque`, `numero_chassi`, `placa`, `documento`, `renavam`, `criado_em`, `atualizado_em`) VALUES
 ('1', 'BMW', '535i', 'bmw-535i-2015', '2015', '159900.00', '0.00', NULL, '90669', 'gasolina', 'automatico', 'Azul', 'BMW 535i M Sport 2015, motor 3.0 24v 6 cilindros, câmbio automático 8 velocidades, cor azul metálico. 90.669 km. Completo, revisado e com procedência comprovada.', 'disponivel', '1', NULL, NULL, NULL, NULL, '2026-05-30 22:54:58', '2026-05-30 22:54:58'),
 ('2', 'Mercedes-Benz', 'GLA 45 AMG', 'mercedes-benz-gla-45-amg-2015', '2015', '184900.00', '0.00', NULL, '63523', 'gasolina', 'automatico', 'Cinza', 'Mercedes-Benz GLA 45 AMG 2015, motor 2.0 turbo 381cv, câmbio automático 7 velocidades. 63.523 km, cor cinza. Esportivo, completo e impecável.', 'disponivel', '1', NULL, NULL, NULL, NULL, '2026-05-30 22:55:06', '2026-05-30 22:55:06'),
@@ -84,7 +48,6 @@ INSERT INTO `veiculos` (`id`, `marca`, `modelo`, `slug`, `ano`, `preco_venda`, `
 ('20', 'Volkswagen', 'Fox', 'volkswagen-fox-2013', '2013', '47800.00', '0.00', NULL, '62562', 'flex', 'manual', 'Preto', 'Volkswagen Fox 1.6 BlueMotion 2013, câmbio manual, cor preto. 62.562 km. IPVA 2026 pago. Ar-condicionado, travas e vidros elétricos, alarme.', 'disponivel', '0', NULL, NULL, NULL, NULL, '2026-05-30 22:57:30', '2026-05-30 22:57:30');
 
 -- Tabela: veiculos_fotos
-TRUNCATE TABLE `veiculos_fotos`;
 INSERT INTO `veiculos_fotos` (`id`, `veiculo_id`, `caminho`, `principal`, `ordem`, `criado_em`) VALUES
 ('1', '1', 'carros/bmw-535i-2015/IMG-20250219-WA0070.jpg', '1', '0', '2026-05-30 22:54:58'),
 ('2', '1', 'carros/bmw-535i-2015/IMG-20250219-WA0076.jpg', '0', '1', '2026-05-30 22:54:59'),
@@ -354,11 +317,5 @@ INSERT INTO `veiculos_fotos` (`id`, `veiculo_id`, `caminho`, `principal`, `ordem
 ('266', '20', 'carros/volkswagen-fox-2013/WhatsApp-Image-2026-04-28-at-16.26.53.jpeg', '0', '12', '2026-05-30 22:57:40'),
 ('267', '20', 'carros/volkswagen-fox-2013/WhatsApp-Image-2026-04-28-at-16.26.54.jpeg', '0', '13', '2026-05-30 22:57:40'),
 ('268', '20', 'carros/volkswagen-fox-2013/WhatsApp-Image-2026-04-28-at-16.26.56.jpeg', '0', '14', '2026-05-30 22:57:40');
-
--- Tabela: veiculos_videos
-TRUNCATE TABLE `veiculos_videos`;
-
--- Tabela: vendas
-TRUNCATE TABLE `vendas`;
 
 SET FOREIGN_KEY_CHECKS=1;
