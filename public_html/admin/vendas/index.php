@@ -155,6 +155,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <th>Forma Pag.</th>
                 <th>Valor</th>
                 <th>Comissão</th>
+                <th>Garantia</th>
                 <th>Status</th>
                 <th>Ações</th>
             </tr>
@@ -176,6 +177,26 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
             </td>
             <td><?= formatarMoeda($v['comissao_vendedor']) ?></td>
+            <td>
+                <?php
+                $prazo = (int)($v['prazo_garantia_meses'] ?? 0);
+                if ($prazo > 0 && !empty($v['data_entrega'])) {
+                    $fim = strtotime($v['data_entrega'] . ' +' . $prazo . ' months');
+                    $dias = (int)ceil(($fim - time()) / 86400);
+                    if ($dias > 30) {
+                        echo '<span class="badge-admin badge-admin--green">✓ ' . $dias . 'd</span>';
+                    } elseif ($dias > 0) {
+                        echo '<span class="badge-admin badge-admin--gold">⚠ ' . $dias . 'd</span>';
+                    } else {
+                        echo '<span class="badge-admin badge-admin--cancelada">Expirada</span>';
+                    }
+                } elseif ($prazo > 0) {
+                    echo '<small style="color:#555">' . $prazo . 'm</small>';
+                } else {
+                    echo '<small style="color:#333">—</small>';
+                }
+                ?>
+            </td>
             <td><span class="badge-admin badge-admin--<?= $v['status'] ?>"><?= ucfirst($v['status']) ?></span></td>
             <td class="td-acoes">
                 <?php if (ehAdmin()): ?>

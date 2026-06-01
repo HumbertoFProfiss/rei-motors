@@ -69,8 +69,17 @@ $_inicial = mb_strtoupper(mb_substr($_usuario['nome'], 0, 1, 'UTF-8'), 'UTF-8');
            class="sidebar__link <?= $pagina_ativa === 'garantias' ? 'ativo' : '' ?>">
             <span class="sidebar__link-icone">🛡️</span> Garantias
         </a>
+        <a href="<?= $admin_root ?>chamadas/"
+           class="sidebar__link <?= $pagina_ativa === 'chamadas' ? 'ativo' : '' ?>">
+            <span class="sidebar__link-icone">📞</span> Chamadas
+        </a>
 
         <?php if (ehAdmin()): ?>
+        <div class="sidebar__section">Marketing</div>
+        <a href="<?= $admin_root ?>anuncios/"
+           class="sidebar__link <?= $pagina_ativa === 'anuncios' ? 'ativo' : '' ?>">
+            <span class="sidebar__link-icone">📢</span> Anúncios
+        </a>
         <div class="sidebar__section">Financeiro</div>
         <a href="<?= $admin_root ?>financeiro/"
            class="sidebar__link <?= $pagina_ativa === 'financeiro' ? 'ativo' : '' ?>">

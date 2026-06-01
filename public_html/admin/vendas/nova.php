@@ -36,9 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['preco_venda']       = (float)str_replace(['.', ','], ['', '.'], $_POST['preco_venda'] ?? '0');
     $d['desconto_aplicado'] = (float)str_replace(['.', ','], ['', '.'], $_POST['desconto_aplicado'] ?? '0');
     $d['valor_troca']       = (float)str_replace(['.', ','], ['', '.'], $_POST['valor_troca'] ?? '0');
-    $d['data_venda']        = sanitizar($_POST['data_venda'] ?? date('Y-m-d'));
-    $d['data_entrega']      = !empty($_POST['data_entrega']) ? sanitizar($_POST['data_entrega']) : null;
-    $d['status']            = 'pendente';
+    $d['data_venda']             = sanitizar($_POST['data_venda'] ?? date('Y-m-d'));
+    $d['data_entrega']           = !empty($_POST['data_entrega']) ? sanitizar($_POST['data_entrega']) : null;
+    $d['prazo_garantia_meses']   = (int)($_POST['prazo_garantia_meses'] ?? 3);
+    $d['status']                 = 'pendente';
     $d['numero_contrato']   = sanitizar($_POST['numero_contrato'] ?? '');
     $d['observacoes']       = sanitizar($_POST['observacoes'] ?? '');
 
@@ -259,6 +260,12 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="text" name="numero_contrato"
                            value="<?= htmlspecialchars($d['numero_contrato']) ?>"
                            placeholder="REI-2025-001">
+                </div>
+                <div class="form-grupo">
+                    <label>Prazo de Garantia (meses)</label>
+                    <input type="number" name="prazo_garantia_meses" min="0" max="60"
+                           value="<?= (int)($d['prazo_garantia_meses'] ?? 3) ?>">
+                    <span class="form-grupo__hint">Padrão: 3 meses. Digite 0 para sem garantia.</span>
                 </div>
             </div>
             <div style="margin-top:14px">

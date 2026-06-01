@@ -26,7 +26,7 @@ $d = [
     'observacoes'  => '',
 ];
 
-$veiculos  = obterTodas("SELECT id, marca, modelo, ano FROM veiculos ORDER BY marca, modelo");
+$veiculos  = obterTodas("SELECT id, marca, modelo, ano FROM veiculos WHERE status = 'vendido' ORDER BY marca, modelo");
 $clientes  = obterTodas("SELECT id, nome, cpf FROM clientes ORDER BY nome");
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -48,6 +48,8 @@ CREATE TABLE veiculos (
     tipo_propriedade ENUM('proprio','consignado') NOT NULL DEFAULT 'proprio',
     consignado_valor_minimo DECIMAL(12,2) NULL,
     consignado_percentual DECIMAL(5,2) NULL,
+    consignado_proprietario_nome VARCHAR(100) NULL,
+    consignado_proprietario_telefone VARCHAR(20) NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_marca (marca),
@@ -120,6 +122,9 @@ CREATE TABLE vendas (
     status ENUM('pendente', 'confirmada', 'entregue', 'cancelada') DEFAULT 'pendente',
     data_venda DATE NOT NULL,
     data_entrega DATE,
+    prazo_garantia_meses TINYINT DEFAULT 3,
+    recibo_emitido TINYINT(1) DEFAULT 0,
+    recibo_entregue TINYINT(1) DEFAULT 0,
     numero_contrato VARCHAR(50),
     observacoes TEXT,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -212,6 +217,34 @@ CREATE TABLE contas_receber (
     FOREIGN KEY (venda_id) REFERENCES vendas(id) ON DELETE SET NULL,
     INDEX idx_status (status),
     INDEX idx_vencimento (data_vencimento)
+);
+
+-- ===== ANOTAÇÕES E CHAMADAS =====
+
+CREATE TABLE veiculos_anotacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    veiculo_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    texto TEXT NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (veiculo_id) REFERENCES veiculos(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    INDEX idx_veiculo (veiculo_id)
+);
+
+CREATE TABLE chamadas_proposta (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cliente_id INT NULL,
+    usuario_id INT NOT NULL,
+    tipo ENUM('ligacao','whatsapp','presencial','email') DEFAULT 'ligacao',
+    descricao TEXT NOT NULL,
+    resultado ENUM('sem_resposta','interesse','proposta_enviada','fechado','desistiu') DEFAULT 'interesse',
+    data_chamada DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE SET NULL,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    INDEX idx_cliente (cliente_id),
+    INDEX idx_resultado (resultado)
 );
 
 -- ===== GARANTIAS =====

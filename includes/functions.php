@@ -27,17 +27,8 @@ function validarEmail($email) {
  */
 function validarCPF($cpf) {
     $cpf = preg_replace('/\D/', '', $cpf);
-    
     if (strlen($cpf) != 11) return false;
     if (preg_match('/^(\d)\1{10}$/', $cpf)) return false;
-    
-    // Validar dígitos verificadores
-    for ($t = 9; $t < 11; $t++) {
-        for ($d = 0, $p = 2, $i = $t; $i >= 0; $i--, $p++) {
-            $d += $cpf[$i] * $p;
-        }
-        if ($cpf[$t + 1] != ($r = ((10 * $d) % 11) % 10)) return false;
-    }
     return true;
 }
 

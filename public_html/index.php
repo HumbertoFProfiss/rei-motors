@@ -36,6 +36,19 @@ $total_estoque = obterUmaLinha(
     "SELECT COUNT(*) as total FROM veiculos WHERE status = 'disponivel'"
 );
 
+// Foto para o hero (primeiro destaque com foto)
+$hero_foto = null;
+foreach ($destaques as $d_hero) {
+    if (!empty($d_hero['fotos'])) {
+        $hero_foto = UPLOAD_DIR . explode(',', $d_hero['fotos'])[0];
+        break;
+    }
+}
+if (!$hero_foto) {
+    $foto_any = obterUmaLinha("SELECT caminho FROM veiculos_fotos ORDER BY id LIMIT 1");
+    if ($foto_any) $hero_foto = UPLOAD_DIR . $foto_any['caminho'];
+}
+
 // ===== FORMULÁRIO VENDA SEU CARRO =====
 $venda_sucesso = false;
 $venda_erro    = '';
@@ -146,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_venda'])) {
 
     <!-- ===== HERO SECTION ===== -->
     <section class="hero" id="home">
-        <div class="hero__background">
+        <div class="hero__background" <?php if ($hero_foto): ?>style="background-image: url('<?php echo htmlspecialchars($hero_foto); ?>')"<?php endif; ?>>
             <div class="hero__overlay"></div>
         </div>
         

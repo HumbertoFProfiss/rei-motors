@@ -56,12 +56,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['consignado_percentual']           = $d['tipo_propriedade'] === 'consignado'
         ? (float)str_replace(',', '.', $_POST['consignado_percentual'] ?? '0')
         : null;
-    $d['consignado_proprietario_nome']     = $d['tipo_propriedade'] === 'consignado'
-        ? sanitizar($_POST['consignado_proprietario_nome'] ?? '') ?: null
-        : null;
-    $d['consignado_proprietario_telefone'] = $d['tipo_propriedade'] === 'consignado'
-        ? sanitizar($_POST['consignado_proprietario_telefone'] ?? '') ?: null
-        : null;
+    $nome_prop = $d['tipo_propriedade'] === 'consignado' ? sanitizar($_POST['consignado_proprietario_nome'] ?? '') : '';
+    $d['consignado_proprietario_nome'] = ($nome_prop !== '') ? $nome_prop : null;
+    $tel_prop = $d['tipo_propriedade'] === 'consignado' ? sanitizar($_POST['consignado_proprietario_telefone'] ?? '') : '';
+    $d['consignado_proprietario_telefone'] = ($tel_prop !== '') ? $tel_prop : null;
     if ($d['tipo_propriedade'] === 'consignado') {
         $d['preco_custo'] = $d['consignado_valor_minimo'] ?? 0;
     }
@@ -119,6 +117,7 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="page__acoes">
         <a href="fotos.php?id=<?= $id ?>" class="btn-admin btn-admin--secondary">📷 Gerenciar Fotos</a>
         <a href="custos.php?id=<?= $id ?>" class="btn-admin btn-admin--secondary">💰 Custos</a>
+        <a href="anotacoes.php?id=<?= $id ?>" class="btn-admin btn-admin--secondary">📝 Anotações</a>
         <a href="<?= BASE_URL ?>veiculo.php?slug=<?= urlencode($veiculo['slug']) ?>"
            target="_blank" class="btn-admin btn-admin--secondary">↗ Ver no Site</a>
     </div>
@@ -237,11 +236,28 @@ require_once __DIR__ . '/../includes/header.php';
                            required placeholder="0,00">
                 </div>
 
-                <div class="form-grupo">
-                    <label>Tabela FIPE (R$)</label>
-                    <input type="text" name="preco_tabela_fipe"
-                           value="<?= $d['preco_tabela_fipe'] ? number_format((float)$d['preco_tabela_fipe'], 2, ',', '.') : '' ?>"
-                           placeholder="0,00">
+                <div class="form-grupo form-grupo--2" id="bloco-fipe">
+                    <label>Tabela FIPE</label>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+                        <select id="fipe_marca" style="flex:1;min-width:140px">
+                            <option value="">Marca FIPE...</option>
+                        </select>
+                        <select id="fipe_modelo" style="flex:1;min-width:140px" disabled>
+                            <option value="">Modelo FIPE...</option>
+                        </select>
+                        <select id="fipe_ano" style="flex:1;min-width:120px" disabled>
+                            <option value="">Ano...</option>
+                        </select>
+                        <button type="button" id="btn_buscar_fipe" class="btn-admin btn-admin--secondary" disabled
+                                style="white-space:nowrap">Buscar FIPE</button>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+                        <input type="text" name="preco_tabela_fipe" id="preco_tabela_fipe"
+                               value="<?= $d['preco_tabela_fipe'] ? number_format((float)$d['preco_tabela_fipe'], 2, ',', '.') : '' ?>"
+                               placeholder="Valor FIPE (R$)" style="flex:1">
+                        <span id="fipe_referencia" style="font-size:0.72rem;color:#555"></span>
+                    </div>
+                    <span class="form-grupo__hint">Selecione marca/modelo/ano para buscar automaticamente ou digite manualmente</span>
                 </div>
 
                 <div class="form-grupo" id="campo-valor-minimo" style="display:none">
@@ -331,6 +347,73 @@ require_once __DIR__ . '/../includes/header.php';
 </form>
 
 <script>
+// ===== FIPE =====
+(function () {
+    var selMarca  = document.getElementById('fipe_marca');
+    var selModelo = document.getElementById('fipe_modelo');
+    var selAno    = document.getElementById('fipe_ano');
+    var btnBuscar = document.getElementById('btn_buscar_fipe');
+    var inputFipe = document.getElementById('preco_tabela_fipe');
+    var spanRef   = document.getElementById('fipe_referencia');
+    var apiBase   = '../../api/fipe.php';
+
+    function popularSelect(sel, dados, valorKey, textoKey, placeholder) {
+        sel.innerHTML = '<option value="">' + placeholder + '</option>';
+        dados.forEach(function (d) { sel.innerHTML += '<option value="' + d[valorKey] + '">' + d[textoKey] + '</option>'; });
+        sel.disabled = false;
+    }
+
+    fetch(apiBase + '?acao=marcas')
+        .then(function(r){ return r.json(); })
+        .then(function(d){ popularSelect(selMarca, d, 'codigo', 'nome', 'Marca FIPE...'); })
+        .catch(function(){});
+
+    selMarca.addEventListener('change', function () {
+        selModelo.innerHTML = '<option value="">Carregando...</option>';
+        selModelo.disabled = true;
+        selAno.innerHTML = '<option value="">Ano...</option>';
+        selAno.disabled = true;
+        btnBuscar.disabled = true;
+        if (!this.value) return;
+        fetch(apiBase + '?acao=modelos&marca_codigo=' + this.value)
+            .then(function(r){ return r.json(); })
+            .then(function(d){ popularSelect(selModelo, d.modelos || d, 'codigo', 'nome', 'Modelo FIPE...'); })
+            .catch(function(){ selModelo.innerHTML = '<option value="">Erro ao carregar</option>'; });
+    });
+
+    selModelo.addEventListener('change', function () {
+        selAno.innerHTML = '<option value="">Carregando...</option>';
+        selAno.disabled = true;
+        btnBuscar.disabled = true;
+        if (!this.value) return;
+        fetch(apiBase + '?acao=anos&marca_codigo=' + selMarca.value + '&modelo_codigo=' + this.value)
+            .then(function(r){ return r.json(); })
+            .then(function(d){ popularSelect(selAno, d, 'codigo', 'nome', 'Ano...'); })
+            .catch(function(){ selAno.innerHTML = '<option value="">Erro ao carregar</option>'; });
+    });
+
+    selAno.addEventListener('change', function () {
+        btnBuscar.disabled = !this.value;
+    });
+
+    btnBuscar.addEventListener('click', function () {
+        btnBuscar.textContent = '...';
+        btnBuscar.disabled = true;
+        fetch(apiBase + '?acao=preco&marca_codigo=' + selMarca.value + '&modelo_codigo=' + selModelo.value + '&ano_codigo=' + selAno.value)
+            .then(function(r){ return r.json(); })
+            .then(function(d) {
+                if (d.Valor) {
+                    var v = d.Valor.replace('R$ ', '').replace(/\./g, '').replace(',', '.');
+                    inputFipe.value = parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+                    spanRef.textContent = 'Ref: ' + (d.MesReferencia || '');
+                }
+                btnBuscar.textContent = 'Buscar FIPE';
+                btnBuscar.disabled = false;
+            })
+            .catch(function(){ btnBuscar.textContent = 'Erro'; btnBuscar.disabled = false; });
+    });
+})();
+// ===== CONSIGNADO =====
 (function () {
     var radios = document.querySelectorAll('input[name="tipo_propriedade"]');
     var campoCusto = document.getElementById('campo-custo');

@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data_desp   = sanitizar($_POST['data_despesa'] ?? date('Y-m-d'));
     $numero_nf   = sanitizar($_POST['numero_nf']   ?? '');
 
-    if (!in_array($categoria, $categorias_despesas, true)) $erros[] = 'Categoria inválida.';
+    if (!isset($categorias_despesas[$categoria])) $erros[] = 'Categoria inválida.';
     if (empty($descricao))  $erros[] = 'Descrição é obrigatória.';
     if ($valor <= 0)        $erros[] = 'Valor deve ser maior que zero.';
 
