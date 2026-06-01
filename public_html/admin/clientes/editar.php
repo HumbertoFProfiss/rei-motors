@@ -45,9 +45,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($d['nome'])) $erros[] = 'Nome é obrigatório.';
     if (!empty($_POST['email']) && !validarEmail($_POST['email'])) $erros[] = 'E-mail inválido.';
 
+    // Definir/redefinir senha do cliente (área do cliente)
+    $senha_nova = $_POST['senha_cliente'] ?? '';
+    if (!empty($senha_nova)) {
+        if (strlen($senha_nova) < 6) {
+            $erros[] = 'A senha deve ter ao menos 6 caracteres.';
+        } else {
+            $d['senha'] = hashSenha($senha_nova);
+        }
+    }
+
     if (empty($erros)) {
         $campos_upd = array_filter(
-            array_intersect_key($d, array_flip($campos)),
+            array_intersect_key($d, array_flip(array_merge($campos, isset($d['senha']) ? ['senha'] : []))),
             fn($v) => $v !== null
         );
         atualizar('clientes', $campos_upd, 'id = ?', [$id]);
@@ -170,6 +180,27 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="text" name="cep" value="<?= htmlspecialchars($d['cep'] ?? '') ?>" maxlength="9">
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="form-section__titulo">🔐 Acesso — Área do Cliente</div>
+        <div class="form-section__body">
+            <p style="font-size:0.78rem;color:#555;margin-bottom:12px">
+                <?= $cliente['senha'] ? '✓ Senha já definida. Preencha abaixo para redefinir.' : '⚠ Sem senha. Defina uma senha para liberar o acesso do cliente.' ?>
+            </p>
+            <div class="form-grid">
+                <div class="form-grupo">
+                    <label>Nova Senha <?= $cliente['senha'] ? '(opcional)' : '<span class="obrigatorio">definir</span>' ?></label>
+                    <input type="text" name="senha_cliente" placeholder="Mín. 6 caracteres"
+                           autocomplete="off">
+                </div>
+            </div>
+            <p style="font-size:0.72rem;color:#3A3A3A;margin-top:8px">
+                Login: <strong style="color:#606060"><?= htmlspecialchars($cliente['email'] ?? '(sem e-mail)') ?></strong>
+                &nbsp;·&nbsp;
+                <a href="<?= CLIENTE_URL ?>" target="_blank" style="color:#D4AF37">↗ Área do Cliente</a>
+            </p>
         </div>
     </div>
 

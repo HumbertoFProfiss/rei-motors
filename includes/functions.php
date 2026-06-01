@@ -233,6 +233,19 @@ function verificarSenha($senha, $hash) {
     return password_verify($senha, $hash);
 }
 
+// ===== AUTENTICAÇÃO DO CLIENTE (ÁREA DO CLIENTE) =====
+
+function clienteAutenticado() {
+    return isset($_SESSION['cliente_id']);
+}
+
+function requerClienteAutenticado() {
+    if (!clienteAutenticado()) {
+        header('Location: ' . BASE_URL . 'cliente/login.php');
+        exit;
+    }
+}
+
 // ===== FUNÇÕES DE UTILIDADE =====
 
 /**

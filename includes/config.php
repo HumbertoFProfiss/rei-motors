@@ -15,6 +15,7 @@ define('LOJA_HORARIO', 'Seg-Sex: 08h às 18h30 | Sáb: 08h às 13h');
 // ===== URLs =====
 define('BASE_URL', 'http://localhost:8080/'); // Mudar em produção
 define('ADMIN_URL', BASE_URL . 'admin/');
+define('CLIENTE_URL', BASE_URL . 'cliente/');
 define('UPLOAD_DIR', '/uploads/');
 define('UPLOAD_PATH', __DIR__ . '/../public_html/uploads/');
 
