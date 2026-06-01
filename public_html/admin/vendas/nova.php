@@ -23,7 +23,7 @@ $d = [
 
 // Listas para selects
 $veiculos_disponiveis = obterTodas(
-    "SELECT id, marca, modelo, ano, preco_venda FROM veiculos WHERE status IN ('disponivel','reservado') ORDER BY marca, modelo"
+    "SELECT id, marca, modelo, ano, preco_venda, tipo_propriedade, consignado_valor_minimo, consignado_proprietario_nome FROM veiculos WHERE status IN ('disponivel','reservado') ORDER BY marca, modelo"
 );
 $clientes_lista = obterTodas("SELECT id, nome, cpf FROM clientes ORDER BY nome");
 $vendedores     = obterTodas("SELECT id, nome FROM usuarios WHERE ativo = 1 ORDER BY nome");
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Verifica se veículo ainda está disponível
     if ($d['veiculo_id'] > 0) {
-        $vei = obterUmaLinha("SELECT id, comissao_percentual FROM veiculos WHERE id = ?", [$d['veiculo_id']]);
+        $vei = obterUmaLinha("SELECT id, marca, modelo, ano, tipo_propriedade, consignado_valor_minimo, consignado_proprietario_nome FROM veiculos WHERE id = ?", [$d['veiculo_id']]);
         if (!$vei) $erros[] = 'Veículo não encontrado.';
     }
 
@@ -79,6 +79,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Atualiza status do veículo para reservado
         atualizar('veiculos', ['status' => 'reservado'], 'id = ?', [$d['veiculo_id']]);
+
+        // Se consignado, gera conta a pagar para o proprietário
+        if (($vei['tipo_propriedade'] ?? '') === 'consignado' && ($vei['consignado_valor_minimo'] ?? 0) > 0) {
+            $nome_prop = $vei['consignado_proprietario_nome'] ?? 'Proprietário';
+            $carro_desc = $vei['marca'] . ' ' . $vei['modelo'] . ' ' . $vei['ano'];
+            inserir('contas_pagar', [
+                'descricao'       => 'Repasse consignado — ' . $carro_desc . ' (' . $nome_prop . ')',
+                'valor'           => $vei['consignado_valor_minimo'],
+                'data_vencimento' => $d['data_entrega'] ?: $d['data_venda'],
+                'categoria'       => 'consignado',
+                'status'          => 'pendente',
+                'observacoes'     => 'Gerado automaticamente pela venda #' . $novo_id,
+            ]);
+        }
 
         header('Location: ' . ADMIN_URL . 'vendas/?msg=salvo');
         exit;
@@ -113,9 +127,13 @@ require_once __DIR__ . '/../includes/header.php';
                         <?php foreach ($veiculos_disponiveis as $v): ?>
                         <option value="<?= $v['id'] ?>"
                                 data-preco="<?= number_format((float)$v['preco_venda'], 2, '.', '') ?>"
+                                data-consignado="<?= $v['tipo_propriedade'] === 'consignado' ? '1' : '0' ?>"
+                                data-proprietario="<?= htmlspecialchars($v['consignado_proprietario_nome'] ?? '') ?>"
+                                data-repasse="<?= number_format((float)($v['consignado_valor_minimo'] ?? 0), 2, ',', '.') ?>"
                                 <?= (int)$d['veiculo_id'] === $v['id'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($v['marca'].' '.$v['modelo'].' '.$v['ano']) ?>
                             — <?= formatarMoeda($v['preco_venda']) ?>
+                            <?= $v['tipo_propriedade'] === 'consignado' ? ' [CONSIGNADO]' : '' ?>
                         </option>
                         <?php endforeach; ?>
                     </select>
@@ -134,6 +152,9 @@ require_once __DIR__ . '/../includes/header.php';
                     <span class="form-grupo__hint">
                         <a href="../clientes/novo.php" target="_blank" style="color:#D4AF37">+ Cadastrar novo cliente</a>
                     </span>
+                </div>
+                <div class="form-grupo form-grupo--2" id="aviso-consignado" style="display:none">
+                    <div class="consignado-resumo" id="texto-consignado"></div>
                 </div>
                 <div class="form-grupo">
                     <label>Vendedor <span class="obrigatorio">*</span></label>
@@ -256,7 +277,7 @@ require_once __DIR__ . '/../includes/header.php';
 </form>
 
 <script>
-// Preenche preço de venda ao selecionar veículo
+// Preenche preço de venda e aviso consignado ao selecionar veículo
 document.querySelector('select[name="veiculo_id"]').addEventListener('change', function () {
     var opt   = this.options[this.selectedIndex];
     var preco = opt.dataset.preco;
@@ -264,6 +285,16 @@ document.querySelector('select[name="veiculo_id"]').addEventListener('change', f
         var v     = parseFloat(preco);
         var campo = document.getElementById('precoVenda');
         campo.value = v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    var aviso = document.getElementById('aviso-consignado');
+    var texto = document.getElementById('texto-consignado');
+    if (opt.dataset.consignado === '1') {
+        aviso.style.display = '';
+        texto.innerHTML = '🤝 <strong>Veículo Consignado</strong> — Proprietário: <strong>' + (opt.dataset.proprietario || 'Não informado') + '</strong><br>' +
+            'Uma conta a pagar de <strong>R$ ' + opt.dataset.repasse + '</strong> será gerada automaticamente para repasse ao proprietário.';
+    } else {
+        aviso.style.display = 'none';
     }
 });
 

@@ -18,6 +18,8 @@ $d = [
     'quilometragem' => 0, 'combustivel' => 'flex', 'cambio' => 'manual',
     'cor' => '', 'descricao' => '', 'status' => 'disponivel', 'destaque' => 0,
     'numero_chassi' => '', 'placa' => '', 'documento' => '', 'renavam' => '',
+    'tipo_propriedade' => 'proprio', 'consignado_valor_minimo' => '', 'consignado_percentual' => '',
+    'consignado_proprietario_nome' => '', 'consignado_proprietario_telefone' => '',
 ];
 $url_youtube = '';
 
@@ -38,17 +40,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['descricao']       = trim(htmlspecialchars_decode(sanitizar($_POST['descricao'] ?? ''), ENT_QUOTES));
     $d['status']          = array_key_exists($_POST['status'] ?? '', $status_veiculo) ? $_POST['status'] : 'disponivel';
     $d['destaque']        = isset($_POST['destaque']) ? 1 : 0;
-    $d['numero_chassi']   = sanitizar($_POST['numero_chassi'] ?? '') ?: null;
-    $d['placa']           = strtoupper(sanitizar($_POST['placa'] ?? '')) ?: null;
-    $d['documento']       = sanitizar($_POST['documento'] ?? '') ?: null;
-    $d['renavam']         = sanitizar($_POST['renavam'] ?? '') ?: null;
-    $url_youtube          = sanitizar($_POST['url_youtube'] ?? '');
+    $d['numero_chassi']          = sanitizar($_POST['numero_chassi'] ?? '') ?: null;
+    $d['placa']                  = strtoupper(sanitizar($_POST['placa'] ?? '')) ?: null;
+    $d['documento']              = sanitizar($_POST['documento'] ?? '') ?: null;
+    $d['renavam']                = sanitizar($_POST['renavam'] ?? '') ?: null;
+    $d['tipo_propriedade']       = ($_POST['tipo_propriedade'] ?? '') === 'consignado' ? 'consignado' : 'proprio';
+    $d['consignado_valor_minimo'] = $d['tipo_propriedade'] === 'consignado'
+        ? (float)str_replace(['.', ','], ['', '.'], $_POST['consignado_valor_minimo'] ?? '0')
+        : null;
+    $d['consignado_percentual']  = $d['tipo_propriedade'] === 'consignado'
+        ? (float)str_replace(',', '.', $_POST['consignado_percentual'] ?? '0')
+        : null;
+    $d['consignado_proprietario_nome']     = $d['tipo_propriedade'] === 'consignado'
+        ? sanitizar($_POST['consignado_proprietario_nome'] ?? '') ?: null
+        : null;
+    $d['consignado_proprietario_telefone'] = $d['tipo_propriedade'] === 'consignado'
+        ? sanitizar($_POST['consignado_proprietario_telefone'] ?? '') ?: null
+        : null;
+    if ($d['tipo_propriedade'] === 'consignado') {
+        $d['preco_custo'] = $d['consignado_valor_minimo'] ?? 0;
+    }
+    $url_youtube = sanitizar($_POST['url_youtube'] ?? '');
 
     if (empty($d['marca']))      $erros[] = 'Marca é obrigatória.';
     if (empty($d['modelo']))     $erros[] = 'Modelo é obrigatório.';
     if ($d['ano'] < 1950 || $d['ano'] > (int)date('Y') + 1) $erros[] = 'Ano inválido.';
     if ($d['preco_venda'] <= 0)  $erros[] = 'Preço de venda inválido.';
-    if ($d['preco_custo'] <= 0)  $erros[] = 'Preço de custo inválido.';
+    if ($d['tipo_propriedade'] === 'proprio' && $d['preco_custo'] <= 0) $erros[] = 'Preço de custo inválido.';
+    if ($d['tipo_propriedade'] === 'consignado' && $d['consignado_valor_minimo'] <= 0) $erros[] = 'Informe o valor mínimo do proprietário.';
     if (empty($d['combustivel'])) $erros[] = 'Selecione o combustível.';
     if (empty($d['cambio']))     $erros[] = 'Selecione o câmbio.';
 
@@ -161,30 +180,96 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
+    <!-- TIPO DE PROPRIEDADE -->
+    <div class="form-section">
+        <div class="form-section__titulo">🏷️ Tipo do Veículo</div>
+        <div class="form-section__body">
+            <div style="display:flex;gap:1.5rem;flex-wrap:wrap">
+                <label class="tipo-propriedade-opcao" id="label-proprio">
+                    <input type="radio" name="tipo_propriedade" value="proprio"
+                           <?= $d['tipo_propriedade'] !== 'consignado' ? 'checked' : '' ?>>
+                    <span>
+                        <strong>🏢 Carro da Loja</strong>
+                        <small>Veículo comprado pela loja. Tem custo de aquisição.</small>
+                    </span>
+                </label>
+                <label class="tipo-propriedade-opcao" id="label-consignado">
+                    <input type="radio" name="tipo_propriedade" value="consignado"
+                           <?= $d['tipo_propriedade'] === 'consignado' ? 'checked' : '' ?>>
+                    <span>
+                        <strong>🤝 Carro Consignado</strong>
+                        <small>Veículo de terceiro. A loja vende e fica com a diferença.</small>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </div>
+
     <!-- PREÇOS -->
     <div class="form-section">
         <div class="form-section__titulo">💰 Preços</div>
         <div class="form-section__body">
             <div class="form-grid">
-                <div class="form-grupo">
+
+                <!-- Preço de Custo (só para carro próprio) -->
+                <div class="form-grupo" id="campo-custo">
                     <label>Preço de Custo (R$) <span class="obrigatorio">*</span></label>
-                    <input type="text" name="preco_custo"
+                    <input type="text" name="preco_custo" id="preco_custo"
                            value="<?= $d['preco_custo'] > 0 ? number_format((float)$d['preco_custo'], 2, ',', '.') : '' ?>"
-                           required placeholder="0,00">
+                           placeholder="0,00">
                     <span class="form-grupo__hint">Visível apenas internamente</span>
                 </div>
+
+                <!-- Preço de Venda -->
                 <div class="form-grupo">
                     <label>Preço de Venda (R$) <span class="obrigatorio">*</span></label>
-                    <input type="text" name="preco_venda"
+                    <input type="text" name="preco_venda" id="preco_venda"
                            value="<?= $d['preco_venda'] > 0 ? number_format((float)$d['preco_venda'], 2, ',', '.') : '' ?>"
                            required placeholder="0,00">
                 </div>
+
                 <div class="form-grupo">
                     <label>Tabela FIPE (R$)</label>
                     <input type="text" name="preco_tabela_fipe"
                            value="<?= $d['preco_tabela_fipe'] ? number_format((float)$d['preco_tabela_fipe'], 2, ',', '.') : '' ?>"
                            placeholder="0,00">
                 </div>
+
+                <!-- Campos consignado -->
+                <div class="form-grupo" id="campo-valor-minimo" style="display:none">
+                    <label>Valor Mínimo do Proprietário (R$) <span class="obrigatorio">*</span></label>
+                    <input type="text" name="consignado_valor_minimo" id="consignado_valor_minimo"
+                           value="<?= $d['consignado_valor_minimo'] > 0 ? number_format((float)$d['consignado_valor_minimo'], 2, ',', '.') : '' ?>"
+                           placeholder="0,00">
+                    <span class="form-grupo__hint">Quanto o dono do carro quer receber no mínimo</span>
+                </div>
+
+                <div class="form-grupo" id="campo-percentual" style="display:none">
+                    <label>Comissão da Loja (%)</label>
+                    <input type="text" name="consignado_percentual" id="consignado_percentual"
+                           value="<?= $d['consignado_percentual'] > 0 ? number_format((float)$d['consignado_percentual'], 2, ',', '.') : '' ?>"
+                           placeholder="0,00">
+                    <span class="form-grupo__hint">Calculado automaticamente sobre o preço de venda</span>
+                </div>
+
+                <div class="form-grupo" id="campo-proprietario-nome" style="display:none">
+                    <label>Nome do Proprietário <span class="obrigatorio">*</span></label>
+                    <input type="text" name="consignado_proprietario_nome" id="consignado_proprietario_nome"
+                           value="<?= htmlspecialchars($d['consignado_proprietario_nome'] ?? '') ?>"
+                           placeholder="Nome completo">
+                </div>
+
+                <div class="form-grupo" id="campo-proprietario-tel" style="display:none">
+                    <label>Telefone do Proprietário</label>
+                    <input type="text" name="consignado_proprietario_telefone" id="consignado_proprietario_telefone"
+                           value="<?= htmlspecialchars($d['consignado_proprietario_telefone'] ?? '') ?>"
+                           placeholder="(14) 99999-9999">
+                </div>
+
+                <div class="form-grupo form-grupo--2" id="campo-resumo-consignado" style="display:none">
+                    <div class="consignado-resumo" id="consignado-resumo"></div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -240,4 +325,74 @@ require_once __DIR__ . '/../includes/header.php';
 
 </form>
 
+<script>
+(function () {
+    var radios = document.querySelectorAll('input[name="tipo_propriedade"]');
+    var campoCusto = document.getElementById('campo-custo');
+    var campoValorMin = document.getElementById('campo-valor-minimo');
+    var campoPerc = document.getElementById('campo-percentual');
+    var campoResumo = document.getElementById('campo-resumo-consignado');
+    var campoNome = document.getElementById('campo-proprietario-nome');
+    var campoTel = document.getElementById('campo-proprietario-tel');
+    var inputCusto = document.getElementById('preco_custo');
+    var inputVenda = document.getElementById('preco_venda');
+    var inputValorMin = document.getElementById('consignado_valor_minimo');
+    var inputPerc = document.getElementById('consignado_percentual');
+    var resumoDiv = document.getElementById('consignado-resumo');
+
+    function parseBR(v) {
+        return parseFloat((v || '0').replace(/\./g, '').replace(',', '.')) || 0;
+    }
+    function formatBR(v) {
+        return v.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    function atualizarModo() {
+        var consignado = document.querySelector('input[name="tipo_propriedade"]:checked').value === 'consignado';
+        campoCusto.style.display = consignado ? 'none' : '';
+        campoValorMin.style.display = consignado ? '' : 'none';
+        campoPerc.style.display = consignado ? '' : 'none';
+        campoResumo.style.display = consignado ? '' : 'none';
+        campoNome.style.display = consignado ? '' : 'none';
+        campoTel.style.display = consignado ? '' : 'none';
+        inputCusto.required = !consignado;
+        if (consignado) recalcularResumo();
+    }
+
+    function recalcularResumo() {
+        var venda = parseBR(inputVenda.value);
+        var minimo = parseBR(inputValorMin.value);
+        if (venda > 0 && minimo > 0) {
+            var lucroLoja = venda - minimo;
+            var perc = (lucroLoja / venda) * 100;
+            inputPerc.value = formatBR(perc);
+            resumoDiv.innerHTML =
+                '<strong>Resumo:</strong> Venda R$ ' + formatBR(venda) +
+                ' &minus; Proprietário R$ ' + formatBR(minimo) +
+                ' = <span style="color:var(--color-success)">Loja R$ ' + formatBR(lucroLoja) + ' (' + formatBR(perc) + '%)</span>';
+        } else {
+            resumoDiv.innerHTML = '';
+        }
+    }
+
+    function recalcularPorPerc() {
+        var venda = parseBR(inputVenda.value);
+        var perc = parseBR(inputPerc.value);
+        if (venda > 0 && perc > 0 && perc < 100) {
+            var minimo = venda * (1 - perc / 100);
+            inputValorMin.value = formatBR(minimo);
+            recalcularResumo();
+        }
+    }
+
+    radios.forEach(function (r) { r.addEventListener('change', atualizarModo); });
+    inputVenda.addEventListener('blur', function () {
+        if (document.querySelector('input[name="tipo_propriedade"]:checked').value === 'consignado') recalcularResumo();
+    });
+    inputValorMin.addEventListener('blur', recalcularResumo);
+    inputPerc.addEventListener('blur', recalcularPorPerc);
+
+    atualizarModo();
+})();
+</script>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

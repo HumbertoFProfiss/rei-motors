@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_venda'])) {
     <title><?php echo LOJA_NOME; ?> - Loja de Carros Online</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="<?php echo UPLOAD_DIR; ?>favicon.ico">
+    <link rel="icon" type="image/png" href="<?php echo UPLOAD_DIR; ?>favicon.png">
     
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -110,10 +110,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_venda'])) {
     <!-- ===== HEADER ===== -->
     <header class="header">
         <div class="container">
-            <div class="header__logo">
+            <a href="<?php echo BASE_URL; ?>" class="header__logo">
                 <img src="<?php echo UPLOAD_DIR; ?>logo.png" alt="<?php echo LOJA_NOME; ?>" class="logo">
                 <span class="logo-text"><?php echo LOJA_NOME; ?></span>
-            </div>
+            </a>
 
             <nav class="header__nav">
                 <ul class="nav__menu">
@@ -170,38 +170,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_venda'])) {
     </section>
 
     <!-- ===== DIFERENCIAIS ===== -->
-    <section class="diferenciais">
-        <div class="container">
-            <h2 class="section__title">Por Que Escolher a Rei Motors?</h2>
-
-            <div class="diferenciais__grid">
-                <div class="diferencial__card">
-                    <div class="diferencial__icon">👑</div>
-                    <h3 class="diferencial__title">Atendimento REAL</h3>
-                    <p class="diferencial__text">Aqui você é tratado como realeza. Equipe dedicada a encontrar o carro perfeito para você</p>
-                </div>
-
-                <div class="diferencial__card">
-                    <div class="diferencial__icon">📍</div>
-                    <h3 class="diferencial__title">Localização Privilegiada</h3>
-                    <p class="diferencial__text">Estacionamento exclusivo e fácil acesso em Botucatu. R. Maj. Matheus, 236 — Vila dos Lavradores</p>
-                </div>
-
-                <div class="diferencial__card">
-                    <div class="diferencial__icon">✅</div>
-                    <h3 class="diferencial__title">Qualidade Assegurada</h3>
-                    <p class="diferencial__text">Todos os veículos inspecionados, com documentação em dia e histórico verificado</p>
-                </div>
-
-                <div class="diferencial__card">
-                    <div class="diferencial__icon">💳</div>
-                    <h3 class="diferencial__title">Financiamento Facilitado</h3>
-                    <p class="diferencial__text">Simule agora e saia de carro no mesmo dia. Trabalhamos com os melhores bancos do mercado</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- ===== DESTAQUES DA SEMANA ===== -->
     <section class="destaques">
         <div class="container">
@@ -298,6 +266,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_venda'])) {
                 <a href="<?php echo BASE_URL; ?>estoque.php" class="btn btn--large btn--primary">
                     Ver Todo o Estoque
                 </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="diferenciais">
+        <div class="container">
+            <h2 class="section__title">Por Que Escolher a Rei Motors?</h2>
+
+            <div class="diferenciais__grid">
+                <div class="diferencial__card">
+                    <div class="diferencial__icon">👑</div>
+                    <h3 class="diferencial__title">Atendimento REAL</h3>
+                    <p class="diferencial__text">Aqui você é tratado como realeza. Equipe dedicada a encontrar o carro perfeito para você</p>
+                </div>
+
+                <div class="diferencial__card">
+                    <div class="diferencial__icon">📍</div>
+                    <h3 class="diferencial__title">Localização Privilegiada</h3>
+                    <p class="diferencial__text">Estacionamento exclusivo e fácil acesso em Botucatu. R. Maj. Matheus, 236 — Vila dos Lavradores</p>
+                </div>
+
+                <div class="diferencial__card">
+                    <div class="diferencial__icon">✅</div>
+                    <h3 class="diferencial__title">Qualidade Assegurada</h3>
+                    <p class="diferencial__text">Todos os veículos inspecionados, com documentação em dia e histórico verificado</p>
+                </div>
+
+                <div class="diferencial__card">
+                    <div class="diferencial__icon">💳</div>
+                    <h3 class="diferencial__title">Financiamento Facilitado</h3>
+                    <p class="diferencial__text">Simule agora e saia de carro no mesmo dia. Trabalhamos com os melhores bancos do mercado</p>
+                </div>
             </div>
         </div>
     </section>

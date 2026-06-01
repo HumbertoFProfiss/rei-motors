@@ -393,3 +393,40 @@ img { max-width: 100%; }
     .form-grupo--2 { grid-column: span 1; }
     .login-box { padding: 24px 18px; }
 }
+
+/* Tipo de propriedade (próprio / consignado) */
+.tipo-propriedade-opcao {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px 18px;
+    border: 2px solid #2a2a2a;
+    border-radius: 8px;
+    cursor: pointer;
+    flex: 1;
+    min-width: 220px;
+    transition: border-color 0.2s, background 0.2s;
+}
+.tipo-propriedade-opcao:has(input:checked) {
+    border-color: #D4AF37;
+    background: rgba(212,175,55,0.06);
+}
+.tipo-propriedade-opcao input[type="radio"] {
+    margin-top: 3px;
+    accent-color: #D4AF37;
+    flex-shrink: 0;
+}
+.tipo-propriedade-opcao span { display: flex; flex-direction: column; gap: 3px; }
+.tipo-propriedade-opcao strong { font-size: 0.85rem; color: #e0e0e0; }
+.tipo-propriedade-opcao small { font-size: 0.72rem; color: #666; }
+
+/* Resumo consignado */
+.consignado-resumo {
+    background: rgba(212,175,55,0.08);
+    border: 1px solid rgba(212,175,55,0.25);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: #bbb;
+    line-height: 1.6;
+}

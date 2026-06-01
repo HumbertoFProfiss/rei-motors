@@ -136,7 +136,7 @@ if ($filtros['marca']) $titulo_pagina = 'Carros ' . $filtros['marca'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Rei Motors Botucatu — <?php echo $total; ?> seminovos disponíveis. Carros inspecionados, com procedência e financiamento facilitado. Venha conferir!">
-    <link rel="icon" type="image/x-icon" href="<?php echo UPLOAD_DIR; ?>favicon.ico">
+    <link rel="icon" type="image/png" href="<?php echo UPLOAD_DIR; ?>favicon.png">
 
     <title><?php echo $titulo_pagina; ?> - <?php echo LOJA_NOME; ?></title>
 

@@ -108,7 +108,7 @@ $csrf_token = gerarTokenCSRF();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="<?php echo htmlspecialchars($veiculo['marca'] . ' ' . $veiculo['modelo'] . ' ' . $veiculo['ano'] . ' — ' . formatarMoeda($veiculo['preco_venda']) . '. Seminovo revisado na Rei Motors, Botucatu - SP. Financiamento facilitado.'); ?>">
-    <link rel="icon" type="image/x-icon" href="<?php echo UPLOAD_DIR; ?>favicon.ico">
+    <link rel="icon" type="image/png" href="<?php echo UPLOAD_DIR; ?>favicon.png">
 
     <title><?php echo htmlspecialchars($veiculo['marca'] . ' ' . $veiculo['modelo'] . ' ' . $veiculo['ano']); ?> - <?php echo LOJA_NOME; ?></title>
 
