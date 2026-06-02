@@ -11,29 +11,33 @@ if (estaAutenticado()) {
 $erro = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
-    $senha = $_POST['senha'] ?? '';
-
-    if (empty($email) || empty($senha)) {
-        $erro = 'Preencha e-mail e senha.';
+    if (!verificarTokenCSRF($_POST['csrf_token'] ?? '')) {
+        $erro = 'Token de segurança inválido. Recarregue a página.';
     } else {
-        $usuario = obterUmaLinha(
-            "SELECT id, nome, email, senha, role, ativo FROM usuarios WHERE email = ? LIMIT 1",
-            [$email]
-        );
+        $email = trim($_POST['email'] ?? '');
+        $senha = $_POST['senha'] ?? '';
 
-        if (!$usuario || !$usuario['ativo']) {
-            $erro = 'Usuário não encontrado ou inativo.';
-        } elseif (!verificarSenha($senha, $usuario['senha'])) {
-            $erro = 'Senha incorreta.';
+        if (empty($email) || empty($senha)) {
+            $erro = 'Preencha e-mail e senha.';
         } else {
-            $_SESSION['usuario_id']   = $usuario['id'];
-            $_SESSION['usuario_nome'] = $usuario['nome'];
-            $_SESSION['usuario_role'] = $usuario['role'];
-            $_SESSION['login_time']   = time();
+            $usuario = obterUmaLinha(
+                "SELECT id, nome, email, senha, role, ativo FROM usuarios WHERE email = ? LIMIT 1",
+                [$email]
+            );
 
-            header('Location: ' . ADMIN_URL);
-            exit;
+            if (!$usuario || !$usuario['ativo']) {
+                $erro = 'Usuário não encontrado ou inativo.';
+            } elseif (!verificarSenha($senha, $usuario['senha'])) {
+                $erro = 'Senha incorreta.';
+            } else {
+                $_SESSION['usuario_id']   = $usuario['id'];
+                $_SESSION['usuario_nome'] = $usuario['nome'];
+                $_SESSION['usuario_role'] = $usuario['role'];
+                $_SESSION['login_time']   = time();
+
+                header('Location: ' . ADMIN_URL);
+                exit;
+            }
         }
     }
 }
@@ -62,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(gerarTokenCSRF()) ?>">
             <div class="login-grupo">
                 <label for="email">E-mail</label>
                 <input type="email" id="email" name="email" required

@@ -1,7 +1,16 @@
 <?php
-// Proxy para API FIPE (parallelum.com.br) — sem autenticação necessária
+// Proxy para API FIPE — somente para admin autenticado
+require_once __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../../includes/functions.php';
+
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+
+if (!estaAutenticado()) {
+    http_response_code(403);
+    echo json_encode(['erro' => 'Acesso negado']);
+    exit;
+}
 
 $acao         = $_GET['acao']         ?? '';
 $marca_codigo = (int)($_GET['marca_codigo'] ?? 0);

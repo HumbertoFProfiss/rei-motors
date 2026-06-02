@@ -86,6 +86,8 @@
 .logo {
     height: 38px;
     width: auto;
+    max-width: 150px;
+    object-fit: contain;
     mix-blend-mode: screen;
 }
 

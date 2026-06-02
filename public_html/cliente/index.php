@@ -44,6 +44,10 @@ $chamados_abertos = obterUmaLinha(
 $qtd_chamados = (int)($chamados_abertos['total'] ?? 0);
 ?>
 
+<?php if (isset($_GET['cadastro'])): ?>
+<div class="alert alert--success">Cadastro realizado com sucesso! Bem-vindo à Rei Motors.</div>
+<?php endif; ?>
+
 <div class="page__header">
     <div>
         <h1 class="page__titulo">Olá, <?= htmlspecialchars(explode(' ', $cliente['nome'])[0]) ?>!</h1>

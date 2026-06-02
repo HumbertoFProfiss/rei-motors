@@ -48,7 +48,7 @@ if (isset($_GET['exportar_csv'])) {
 }
 
 $veiculos = obterTodas(
-    "SELECT v.id, v.marca, v.modelo, v.ano, v.preco_venda, v.quilometragem, v.status,
+    "SELECT v.id, v.slug, v.marca, v.modelo, v.ano, v.preco_venda, v.quilometragem, v.status,
             (SELECT caminho FROM veiculos_fotos WHERE veiculo_id = v.id AND principal = 1 LIMIT 1) AS foto
      FROM veiculos v WHERE v.status = 'disponivel' ORDER BY v.criado_em DESC"
 );
@@ -133,7 +133,7 @@ require_once __DIR__ . '/../includes/header.php';
             <td><?= formatarMoeda($v['preco_venda']) ?></td>
             <td><?= formatarKM($v['quilometragem']) ?> km</td>
             <td>
-                <a href="<?= BASE_URL ?>veiculo.php?slug=<?= $v['id'] ?>"
+                <a href="<?= BASE_URL ?>veiculo.php?slug=<?= htmlspecialchars($v['slug']) ?>"
                    target="_blank" style="color:#D4AF37;font-size:0.75rem">↗ Ver</a>
             </td>
         </tr>

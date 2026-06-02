@@ -5,7 +5,6 @@
  */
 
 header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -16,6 +15,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/functions.php';
+
+// Rate limiting: máx 5 submissões por IP a cada 10 minutos
+$ip  = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+$key = 'lead_rate_' . md5($ip);
+if (!isset($_SESSION[$key])) {
+    $_SESSION[$key] = ['count' => 0, 'reset_at' => time() + 600];
+}
+if (time() > $_SESSION[$key]['reset_at']) {
+    $_SESSION[$key] = ['count' => 0, 'reset_at' => time() + 600];
+}
+$_SESSION[$key]['count']++;
+if ($_SESSION[$key]['count'] > 5) {
+    http_response_code(429);
+    echo json_encode(['ok' => false, 'erro' => 'Muitas tentativas. Aguarde alguns minutos.']);
+    exit;
+}
 
 $origens_permitidas = ['simulador', 'estoque', 'site'];
 

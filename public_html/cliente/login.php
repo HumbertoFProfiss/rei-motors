@@ -74,12 +74,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="login-btn">Entrar</button>
         </form>
 
-        <div class="login-info">
-            Primeiro acesso? A loja define sua senha.<br>
-            Entre em contato: <strong><?= LOJA_WHATSAPP ?></strong>
-        </div>
-
-        <p class="login-footer">
+        <p class="login-footer" style="margin-top:20px">
+            Não tem cadastro?
+            <a href="<?= CLIENTE_URL ?>cadastro.php" style="font-weight:700">Criar conta grátis</a>
+        </p>
+        <p class="login-footer" style="margin-top:8px">
             <a href="<?= BASE_URL ?>">← Voltar ao site</a>
         </p>
     </div>

@@ -174,10 +174,13 @@ if ($filtros['marca']) $titulo_pagina = 'Carros ' . $filtros['marca'];
                 <button class="theme-toggle" id="themeToggle" aria-label="Alternar tema">
                     <span class="theme-toggle__icon">🌙</span>
                 </button>
-                <a href="<?php echo ADMIN_URL; ?>" class="btn-admin" title="Área Administrativa">🔒</a>
+                <a href="<?php echo CLIENTE_URL; ?>" class="btn btn--cliente" title="Área do Cliente">
+                    👤 Área do Cliente
+                </a>
                 <a href="https://wa.me/55<?php echo preg_replace('/\D/', '', LOJA_WHATSAPP); ?>" class="btn btn--primary" target="_blank">
                     WhatsApp
                 </a>
+                <a href="<?php echo ADMIN_URL; ?>" class="btn-admin-mini" title="Administração">🔒</a>
             </div>
 
             <button class="hamburger" id="hamburger" aria-label="Menu">

@@ -120,9 +120,24 @@ $categorias_despesas = [
     'outro' => 'Outro',
 ];
 
-// Iniciar sessão se ainda não iniciada
+// ===== SESSÃO E HEADERS DE SEGURANÇA =====
 if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => SESSION_TIMEOUT,
+        'path'     => '/',
+        'secure'   => isset($_SERVER['HTTPS']),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
     session_start();
+}
+
+// Headers de segurança para todas as páginas
+if (!headers_sent()) {
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-XSS-Protection: 1; mode=block');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
 }
 
 /**
@@ -140,12 +155,24 @@ function ehAdmin() {
 }
 
 /**
- * Redirecionar se não autenticado
+ * Redirecionar se não autenticado; bloqueia POST sem token CSRF válido
  */
 function requerAutenticacao() {
     if (!estaAutenticado()) {
         header('Location: ' . ADMIN_URL . 'login.php');
         exit;
+    }
+    // Protege todos os POST do painel admin contra CSRF
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $token = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if (!verificarTokenCSRF($token)) {
+            http_response_code(403);
+            echo '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem">';
+            echo '<h2>&#128274; Token de segurança inválido</h2>';
+            echo '<p>A sessão pode ter expirado. <a href="javascript:history.back()">Voltar</a></p>';
+            echo '</body></html>';
+            exit;
+        }
     }
 }
 
