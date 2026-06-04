@@ -228,15 +228,21 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <div class="form-grupo form-grupo--2" id="bloco-fipe">
                     <label>Tabela FIPE</label>
-                    <div style="display:flex;gap:8px;align-items:center">
-                        <input type="text" name="preco_tabela_fipe" id="preco_tabela_fipe"
-                               value="<?= $d['preco_tabela_fipe'] ? number_format((float)$d['preco_tabela_fipe'], 2, ',', '.') : '' ?>"
-                               placeholder="Valor FIPE (R$)" style="flex:1">
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
+                        <input type="text" id="fipe_busca_marca" placeholder="Marca (ex: Volkswagen)"
+                               style="flex:1;min-width:120px">
+                        <input type="text" id="fipe_busca_modelo" placeholder="Modelo (ex: Golf GTI)"
+                               style="flex:1.5;min-width:150px">
+                        <input type="number" id="fipe_busca_ano" placeholder="Ano" min="1950" max="<?= (int)date('Y')+1 ?>"
+                               style="width:82px">
                         <button type="button" id="btn_buscar_fipe" class="btn-admin btn-admin--secondary"
                                 style="white-space:nowrap">🔍 Buscar FIPE</button>
                     </div>
+                    <input type="text" name="preco_tabela_fipe" id="preco_tabela_fipe"
+                           value="<?= $d['preco_tabela_fipe'] ? number_format((float)$d['preco_tabela_fipe'], 2, ',', '.') : '' ?>"
+                           placeholder="Valor FIPE (R$) — preenchido automaticamente">
                     <span id="fipe_referencia" style="font-size:0.72rem;display:block;margin-top:4px"></span>
-                    <span class="form-grupo__hint">Preencha marca, modelo e ano acima e clique em "Buscar FIPE"</span>
+                    <span class="form-grupo__hint">Os campos de busca são pré-preenchidos com o que você digitou acima. Edite se precisar e clique em "Buscar FIPE".</span>
                 </div>
 
                 <!-- Campos consignado -->
@@ -335,12 +341,26 @@ require_once __DIR__ . '/../includes/header.php';
     var btnBuscar   = document.getElementById('btn_buscar_fipe');
     var inputFipe   = document.getElementById('preco_tabela_fipe');
     var spanRef     = document.getElementById('fipe_referencia');
-    var inputMarca  = document.querySelector('input[name="marca"]');
-    var inputModelo = document.querySelector('input[name="modelo"]');
-    var inputAno    = document.querySelector('input[name="ano"]');
+    var buscaMarca  = document.getElementById('fipe_busca_marca');
+    var buscaModelo = document.getElementById('fipe_busca_modelo');
+    var buscaAno    = document.getElementById('fipe_busca_ano');
+    var fMarca      = document.querySelector('input[name="marca"]');
+    var fModelo     = document.querySelector('input[name="modelo"]');
+    var fAno        = document.querySelector('input[name="ano"]');
     var apiBase     = '../../api/fipe.php';
 
     if (!btnBuscar) return;
+
+    // Pré-preenche os campos de busca a partir do formulário principal
+    function sync() {
+        if (fMarca  && fMarca.value  && !buscaMarca.value)  buscaMarca.value  = fMarca.value;
+        if (fModelo && fModelo.value && !buscaModelo.value) buscaModelo.value = fModelo.value;
+        if (fAno    && fAno.value    && !buscaAno.value)    buscaAno.value    = fAno.value;
+    }
+    sync();
+    if (fMarca)  fMarca.addEventListener('input',  sync);
+    if (fModelo) fModelo.addEventListener('input', sync);
+    if (fAno)    fAno.addEventListener('input',    sync);
 
     function norm(s) {
         return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
@@ -394,13 +414,13 @@ require_once __DIR__ . '/../includes/header.php';
     }
 
     btnBuscar.addEventListener('click', function () {
-        var marca  = inputMarca  ? inputMarca.value.trim()  : '';
-        var modelo = inputModelo ? inputModelo.value.trim() : '';
-        var ano    = parseInt(inputAno ? inputAno.value : '0');
+        var marca  = buscaMarca.value.trim();
+        var modelo = buscaModelo.value.trim();
+        var ano    = parseInt(buscaAno.value);
 
         if (!marca || !modelo || !ano) {
             spanRef.style.color = '#ef4444';
-            spanRef.textContent = '⚠ Preencha marca, modelo e ano antes de buscar.';
+            spanRef.textContent = '⚠ Preencha os campos de busca: marca, modelo e ano.';
             return;
         }
 
