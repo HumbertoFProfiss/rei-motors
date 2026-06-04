@@ -37,6 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($_POST['email']) && !validarEmail($_POST['email'])) $erros[] = 'E-mail inválido.';
     if (!empty($_POST['cpf']) && !validarCPF($_POST['cpf'])) $erros[] = 'CPF inválido.';
 
+    $senha_raw = $_POST['senha_acesso'] ?? '';
+    if (!empty($senha_raw)) {
+        if (strlen($senha_raw) < 6) $erros[] = 'Senha deve ter no mínimo 6 caracteres.';
+        else $d['senha'] = hashSenha($senha_raw);
+    }
+
     if (empty($erros)) {
         $novo_id = inserir('clientes', array_filter($d, fn($v) => $v !== null && $v !== ''));
         header('Location: ' . ADMIN_URL . 'clientes/?msg=salvo');
@@ -108,6 +114,11 @@ require_once __DIR__ . '/../includes/header.php';
                     <label>WhatsApp</label>
                     <input type="text" name="whatsapp" value="<?= htmlspecialchars($_POST['whatsapp'] ?? '') ?>"
                            placeholder="(11) 99999-9999">
+                </div>
+                <div class="form-grupo">
+                    <label>Senha de Acesso (Área do Cliente)</label>
+                    <input type="password" name="senha_acesso" placeholder="Mín. 6 caracteres" autocomplete="new-password">
+                    <span class="form-grupo__hint">Deixe em branco para definir depois. Cliente usa e-mail + senha para entrar.</span>
                 </div>
             </div>
         </div>

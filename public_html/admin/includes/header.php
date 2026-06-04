@@ -34,11 +34,7 @@ $_inicial = mb_strtoupper(mb_substr($_usuario['nome'], 0, 1, 'UTF-8'), 'UTF-8');
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
     <div class="sidebar__logo">
-        <span style="font-size:1.4rem">👑</span>
-        <div>
-            <div class="sidebar__logo-nome">Rei Motors</div>
-            <div class="sidebar__logo-sub">Painel Admin</div>
-        </div>
+        <a href="<?= ADMIN_URL ?>"><img src="<?= BASE_URL ?>uploads/logo.png" alt="Rei Motors" style="height:48px;width:auto;object-fit:contain;display:block"></a>
     </div>
 
     <nav class="sidebar__nav">
@@ -131,9 +127,31 @@ $_inicial = mb_strtoupper(mb_substr($_usuario['nome'], 0, 1, 'UTF-8'), 'UTF-8');
             </nav>
         </div>
         <div class="topbar__right">
-            <a href="<?= BASE_URL ?>" target="_blank" class="topbar__site-link">↗ Ver Site</a>
+            <button id="btnTheme" onclick="toggleTheme()" title="Alternar tema"
+                style="background:none;border:1px solid #333;color:#888;padding:4px 10px;border-radius:5px;font-size:0.85rem;cursor:pointer;transition:all 0.15s">
+                🌙
+            </button>
+            <a href="<?= BASE_URL ?>" class="topbar__site-link">↗ Ver Site</a>
         </div>
     </header>
+    <script>
+    (function(){
+        var t = localStorage.getItem('rei_theme');
+        if (t === 'light') { document.body.classList.add('light'); document.getElementById('btnTheme').textContent = '☀️'; }
+    })();
+    function toggleTheme() {
+        var btn = document.getElementById('btnTheme');
+        btn.style.transform = 'scale(0.8)';
+        btn.style.transition = 'transform 0.15s ease';
+        setTimeout(function() {
+            var isLight = document.body.classList.toggle('light');
+            localStorage.setItem('rei_theme', isLight ? 'light' : 'dark');
+            btn.textContent = isLight ? '☀️' : '🌙';
+            btn.style.transform = 'scale(1)';
+            if (typeof window.onThemeChange === 'function') window.onThemeChange(isLight);
+        }, 150);
+    }
+    </script>
 
     <!-- CONTEÚDO DA PÁGINA -->
     <main class="page">

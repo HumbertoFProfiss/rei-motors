@@ -45,16 +45,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($d['nome'])) $erros[] = 'Nome é obrigatório.';
     if (!empty($_POST['email']) && !validarEmail($_POST['email'])) $erros[] = 'E-mail inválido.';
 
+    $senha_raw = $_POST['senha_acesso'] ?? '';
+    if (!empty($senha_raw)) {
+        if (strlen($senha_raw) < 6) $erros[] = 'Senha deve ter no mínimo 6 caracteres.';
+    }
+
     if (empty($erros)) {
         $campos_upd = array_filter(
             array_intersect_key($d, array_flip($campos)),
             fn($v) => $v !== null
         );
+        if (!empty($senha_raw)) $campos_upd['senha'] = hashSenha($senha_raw);
         atualizar('clientes', $campos_upd, 'id = ?', [$id]);
         header('Location: ' . ADMIN_URL . 'clientes/?msg=salvo');
         exit;
     }
 }
+
+$formas_pagamento = [
+    'avista'        => 'À Vista',
+    'financiamento' => 'Financiamento',
+    'cartao'        => 'Cartão',
+    'pix'           => 'PIX',
+    'troca'         => 'Troca',
+    'consorcio'     => 'Consórcio',
+];
 
 // Vendas do cliente
 $vendas = obterTodas(
@@ -131,6 +146,13 @@ require_once __DIR__ . '/../includes/header.php';
                     <label>WhatsApp</label>
                     <input type="text" name="whatsapp"
                            value="<?= $d['whatsapp'] ? htmlspecialchars(formatarTelefone($d['whatsapp'])) : '' ?>">
+                </div>
+                <div class="form-grupo">
+                    <label>Nova Senha (Área do Cliente)</label>
+                    <input type="password" name="senha_acesso" placeholder="Deixe em branco para não alterar" autocomplete="new-password">
+                    <span class="form-grupo__hint">
+                        <?= !empty($d['senha']) ? '✓ Senha já definida — preencha só para redefinir.' : '⚠ Sem senha — cliente não consegue entrar.' ?>
+                    </span>
                 </div>
             </div>
         </div>

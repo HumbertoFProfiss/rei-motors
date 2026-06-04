@@ -17,6 +17,28 @@ if (!$veiculo) {
     exit;
 }
 
+$combustiveis = [
+    'flex'        => 'Flex',
+    'gasolina'    => 'Gasolina',
+    'etanol'      => 'Etanol',
+    'diesel'      => 'Diesel',
+    'eletrico'    => 'Elétrico',
+    'hibrido'     => 'Híbrido',
+    'gnv'         => 'GNV',
+];
+$cambios = [
+    'manual'       => 'Manual',
+    'automatico'   => 'Automático',
+    'cvt'          => 'CVT',
+    'automatizado' => 'Automatizado',
+];
+$status_veiculo = [
+    'disponivel' => 'Disponível',
+    'reservado'  => 'Reservado',
+    'vendido'    => 'Vendido',
+    'inativo'    => 'Inativo',
+];
+
 $titulo_pagina = 'Editar Veículo';
 $pagina_ativa  = 'veiculos';
 $admin_root    = '../';
@@ -119,7 +141,7 @@ require_once __DIR__ . '/../includes/header.php';
         <a href="custos.php?id=<?= $id ?>" class="btn-admin btn-admin--secondary">💰 Custos</a>
         <a href="anotacoes.php?id=<?= $id ?>" class="btn-admin btn-admin--secondary">📝 Anotações</a>
         <a href="<?= BASE_URL ?>veiculo.php?slug=<?= urlencode($veiculo['slug']) ?>"
-           target="_blank" class="btn-admin btn-admin--secondary">↗ Ver no Site</a>
+           class="btn-admin btn-admin--secondary">↗ Ver no Site</a>
     </div>
 </div>
 

@@ -72,13 +72,12 @@ $redes_sociais = [
 
 // ===== FORMAS DE PAGAMENTO =====
 $formas_pagamento = [
-    'avista'              => 'À Vista',
-    'pix'                 => 'PIX',
-    'financiado'          => 'Financiado',
-    'consorcio'           => 'Consórcio',
-    'boleto'              => 'Boleto',
-    'troca'               => 'Troca + Valor',
-    'troca_financiamento' => 'Troca + Financiamento',
+    'avista'        => 'À Vista',
+    'pix'           => 'PIX',
+    'financiamento' => 'Financiamento',
+    'cartao'        => 'Cartão',
+    'consorcio'     => 'Consórcio',
+    'troca'         => 'Troca',
 ];
 
 // ===== COMBUSTÍVEIS =====

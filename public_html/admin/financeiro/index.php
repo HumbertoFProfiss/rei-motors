@@ -13,6 +13,16 @@ $breadcrumb    = [
     ['label' => 'Contas a Pagar',  'url' => ''],
 ];
 
+$categorias_despesas = [
+    'revisao'      => 'Revisão / Mecânica',
+    'funilaria'    => 'Funilaria / Pintura',
+    'limpeza'      => 'Limpeza / Estética',
+    'documentacao' => 'Documentação / Taxas',
+    'pneus'        => 'Pneus / Suspensão',
+    'eletrica'     => 'Elétrica / Eletrônica',
+    'outros'       => 'Outros',
+];
+
 $status_conta = [
     'pendente'  => 'Pendente',
     'paga'      => 'Paga',

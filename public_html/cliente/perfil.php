@@ -16,25 +16,19 @@ $msg_err = '';
 
 // Alterar senha
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alterar_senha'])) {
-    $senha_atual = $_POST['senha_atual'] ?? '';
-    $senha_nova  = $_POST['senha_nova'] ?? '';
-    $senha_conf  = $_POST['senha_confirma'] ?? '';
+    $senha_nova = $_POST['senha_nova']     ?? '';
+    $senha_conf = $_POST['senha_confirma'] ?? '';
 
-    if (empty($senha_atual) || empty($senha_nova) || empty($senha_conf)) {
-        $msg_err = 'Preencha todos os campos.';
-    } elseif (empty($cliente['senha'])) {
-        $msg_err = 'Sua senha ainda não foi configurada. Entre em contato com a loja.';
-    } elseif (!verificarSenha($senha_atual, $cliente['senha'])) {
-        $msg_err = 'Senha atual incorreta.';
+    if (!verificarTokenCSRF($_POST['csrf_token'] ?? '')) {
+        $msg_err = 'Token de segurança inválido. Recarregue a página.';
+    } elseif (empty($senha_nova) || empty($senha_conf)) {
+        $msg_err = 'Preencha os dois campos de senha.';
     } elseif ($senha_nova !== $senha_conf) {
-        $msg_err = 'A nova senha e a confirmação não são iguais.';
+        $msg_err = 'As senhas não são iguais.';
     } elseif (strlen($senha_nova) < 6) {
         $msg_err = 'A senha deve ter ao menos 6 caracteres.';
     } else {
-        $hash = hashSenha($senha_nova);
-        atualizar('clientes', ['senha' => $hash], 'id = ?', [$id]);
-        // Atualiza o registro local
-        $cliente['senha'] = $hash;
+        atualizar('clientes', ['senha' => hashSenha($senha_nova)], 'id = ?', [$id]);
         $msg_ok = 'Senha alterada com sucesso!';
     }
 }
@@ -153,11 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alterar_senha'])) {
     <div class="form-section__body">
         <form method="POST" action="">
             <input type="hidden" name="alterar_senha" value="1">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(gerarTokenCSRF()) ?>">
             <div class="form-grid">
-                <div class="form-grupo">
-                    <label>Senha Atual</label>
-                    <input type="password" name="senha_atual" required autocomplete="current-password">
-                </div>
                 <div class="form-grupo">
                     <label>Nova Senha</label>
                     <input type="password" name="senha_nova" required minlength="6" autocomplete="new-password">
@@ -174,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['alterar_senha'])) {
     </div>
 </div>
 
-<p style="font-size:0.75rem;color:#3A3A3A;margin-top:8px">
+<p style="font-size:0.75rem;color:#888;margin-top:8px">
     Para atualizar outros dados cadastrais, entre em contato com a loja.
 </p>
 

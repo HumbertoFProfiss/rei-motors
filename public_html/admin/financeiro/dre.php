@@ -168,7 +168,7 @@ require_once __DIR__ . '/../includes/header.php';
 (function () {
     var ctx = document.getElementById('chartDRE');
     if (!ctx) return;
-    new Chart(ctx, {
+    var dreChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: <?= json_encode($labels_meses) ?>,
@@ -191,8 +191,9 @@ require_once __DIR__ . '/../includes/header.php';
         },
         options: {
             responsive: true,
+            devicePixelRatio: 1.75,
             plugins: {
-                legend: { labels: { color: '#C0C0C0' } },
+                legend: { labels: { color: '#ccc', font: { size: 13, weight: 'bold' } } },
                 tooltip: {
                     callbacks: {
                         label: function (ctx) {
@@ -203,12 +204,25 @@ require_once __DIR__ . '/../includes/header.php';
                 }
             },
             scales: {
-                x: { ticks: { color: '#C0C0C0' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                y: { ticks: { color: '#C0C0C0', callback: function(v){ return 'R$ '+v.toLocaleString('pt-BR'); } },
-                     grid: { color: 'rgba(255,255,255,0.05)' } }
+                x: { ticks: { color: '#aaa', font: { size: 12 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                y: { ticks: { color: '#aaa', font: { size: 12 }, callback: function(v){ return 'R$ '+v.toLocaleString('pt-BR'); } },
+                     grid: { color: 'rgba(255,255,255,0.04)' } }
             }
         }
     });
+
+    window.onThemeChange = function(isLight) {
+        var tickColor  = isLight ? '#555' : '#aaa';
+        var gridColor  = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.04)';
+        var legColor   = isLight ? '#333' : '#ccc';
+        dreChart.options.plugins.legend.labels.color = legColor;
+        dreChart.options.scales.x.ticks.color = tickColor;
+        dreChart.options.scales.x.grid.color  = gridColor;
+        dreChart.options.scales.y.ticks.color = tickColor;
+        dreChart.options.scales.y.grid.color  = gridColor;
+        dreChart.update();
+    };
+    if (document.body.classList.contains('light')) window.onThemeChange(true);
 })();
 </script>
 

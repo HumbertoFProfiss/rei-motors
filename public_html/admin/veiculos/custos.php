@@ -17,6 +17,16 @@ if (!$veiculo) {
     exit;
 }
 
+$categorias_despesas = [
+    'revisao'      => 'Revisão / Mecânica',
+    'funilaria'    => 'Funilaria / Pintura',
+    'limpeza'      => 'Limpeza / Estética',
+    'documentacao' => 'Documentação / Taxas',
+    'pneus'        => 'Pneus / Suspensão',
+    'eletrica'     => 'Elétrica / Eletrônica',
+    'outros'       => 'Outros',
+];
+
 $titulo_pagina = 'Custos — ' . $veiculo['marca'] . ' ' . $veiculo['modelo'];
 $pagina_ativa  = 'veiculos';
 $admin_root    = '../';
@@ -225,7 +235,7 @@ require_once __DIR__ . '/../includes/header.php';
         <h2 class="table-header__titulo" style="flex:1">Despesas Cadastradas (<?= count($custos) ?>)</h2>
         <form method="GET" action="" style="display:flex;gap:8px;align-items:center">
             <input type="hidden" name="id" value="<?= $id ?>">
-            <select name="cat" onchange="this.form.submit()" style="font-size:0.82rem;padding:5px 8px;background:#1A1A1A;border:1px solid #2A2A2A;color:#CCC;border-radius:6px">
+            <select name="cat" onchange="this.form.submit()" style="font-size:0.82rem;padding:5px 8px;background:var(--admin-card);border:1px solid var(--admin-border);color:inherit;border-radius:6px">
                 <option value="">Todas as categorias</option>
                 <?php foreach ($categorias_despesas as $k => $v): ?>
                 <option value="<?= $k ?>" <?= $filtro_cat === $k ? 'selected' : '' ?>><?= htmlspecialchars($v) ?></option>

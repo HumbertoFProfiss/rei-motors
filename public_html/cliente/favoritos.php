@@ -74,7 +74,7 @@ $status_badge   = ['disponivel'=>'green','reservado'=>'gold','vendido'=>'red'];
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
                 <a href="<?= BASE_URL ?>veiculo.php?slug=<?= htmlspecialchars($v['slug']) ?>"
-                   class="btn-c btn-c--primary" target="_blank">Ver Carro</a>
+                   class="btn-c btn-c--primary">Ver Carro</a>
                 <form method="POST" style="display:inline">
                     <input type="hidden" name="remover_id" value="<?= $v['id'] ?>">
                     <button type="submit" class="btn-c btn-c--secondary"

@@ -117,7 +117,7 @@ require_once __DIR__ . '/../includes/header.php';
                            style="width:18px;height:18px;accent-color:#D4AF37">
                     <span>
                         <strong>Recibo de venda emitido</strong>
-                        <small style="display:block;color:#555">O recibo/contrato foi gerado e assinado</small>
+                        <small style="display:block;color:#888">O recibo/contrato foi gerado e assinado</small>
                     </span>
                 </label>
                 <label class="form-check" style="font-size:0.88rem;gap:10px;cursor:pointer">
@@ -126,7 +126,7 @@ require_once __DIR__ . '/../includes/header.php';
                            style="width:18px;height:18px;accent-color:#D4AF37">
                     <span>
                         <strong>Recibo entregue ao cliente</strong>
-                        <small style="display:block;color:#555">O cliente recebeu a via do recibo/contrato</small>
+                        <small style="display:block;color:#888">O cliente recebeu a via do recibo/contrato</small>
                     </span>
                 </label>
                 <label class="form-check" style="font-size:0.88rem;gap:10px;cursor:pointer">
@@ -135,7 +135,7 @@ require_once __DIR__ . '/../includes/header.php';
                            style="width:18px;height:18px;accent-color:#D4AF37">
                     <span>
                         <strong>Carro entregue ao cliente</strong>
-                        <small style="display:block;color:#555">Controlado pelo status da venda (atual: <?= ucfirst($venda['status']) ?>)</small>
+                        <small style="display:block;color:#888">Controlado pelo status da venda (atual: <?= ucfirst($venda['status']) ?>)</small>
                     </span>
                 </label>
             </div>
@@ -173,11 +173,11 @@ require_once __DIR__ . '/../includes/header.php';
     <?php if ($anotacoes): ?>
     <div style="display:flex;flex-direction:column;gap:12px;padding:16px">
         <?php foreach ($anotacoes as $a): ?>
-        <div style="background:#0f0f0f;border:1px solid #222;border-radius:8px;padding:14px 16px">
+        <div style="background:var(--admin-card);border:1px solid var(--admin-border);border-radius:8px;padding:14px 16px">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
                 <div style="flex:1">
-                    <p style="margin:0 0 8px;color:#e0e0e0;line-height:1.6"><?= nl2br(htmlspecialchars($a['texto'])) ?></p>
-                    <small style="color:#454545">
+                    <p style="margin:0 0 8px;line-height:1.6"><?= nl2br(htmlspecialchars($a['texto'])) ?></p>
+                    <small style="color:#888">
                         👤 <?= htmlspecialchars($a['autor']) ?> &nbsp;·&nbsp;
                         🕐 <?= formatarDataHora($a['criado_em']) ?>
                     </small>

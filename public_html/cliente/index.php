@@ -30,8 +30,8 @@ $ultima_compra = $compras[0] ?? null;
 // Garantias ativas (dentro do prazo)
 $garantias_ativas = 0;
 foreach ($compras as $c) {
-    if (!empty($c['data_entrega']) && (int)($c['prazo_garantia_meses'] ?? 0) > 0) {
-        $fim = strtotime($c['data_entrega'] . ' +' . (int)$c['prazo_garantia_meses'] . ' months');
+    if (!empty($c['data_entrega']) && (int)($c['prazo_garantia_dias'] ?? 0) > 0) {
+        $fim = strtotime($c['data_entrega']) + (int)$c['prazo_garantia_dias'] * 86400;
         if ($fim > time()) $garantias_ativas++;
     }
 }
@@ -110,15 +110,12 @@ $qtd_chamados = (int)($chamados_abertos['total'] ?? 0);
                     <span class="badge badge--<?= $status_badge[$s] ?? 'gray' ?>">
                         <?= $status_labels[$s] ?? ucfirst($s) ?>
                     </span>
-                    <?php if ((int)($ultima_compra['prazo_garantia_meses'] ?? 0) > 0 && !empty($ultima_compra['data_entrega'])): ?>
+                    <?php if ((int)($ultima_compra['prazo_garantia_dias'] ?? 0) > 0 && !empty($ultima_compra['data_entrega'])): ?>
                     <?php
-                    $fim_g  = strtotime($ultima_compra['data_entrega'] . ' +' . (int)$ultima_compra['prazo_garantia_meses'] . ' months');
-                    $dias_g = (int)ceil(($fim_g - time()) / 86400);
-                    if ($dias_g > 30):
+                    $fim_g  = strtotime($ultima_compra['data_entrega']) + (int)$ultima_compra['prazo_garantia_dias'] * 86400;
                     ?>
-                    <span class="badge badge--green">🛡️ Garantia: <?= $dias_g ?>d restantes</span>
-                    <?php elseif ($dias_g > 0): ?>
-                    <span class="badge badge--gold">🛡️ Garantia: <?= $dias_g ?>d restantes</span>
+                    <?php if ($fim_g > time()): ?>
+                    <span class="badge badge--green">🛡️ Garantia ativa</span>
                     <?php else: ?>
                     <span class="badge badge--gray">🛡️ Garantia expirada</span>
                     <?php endif; ?>

@@ -67,6 +67,12 @@
 
 .hero__text {
     animation: slideInUp 1s ease-out;
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
 }
 
 .hero__title {

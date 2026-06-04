@@ -142,7 +142,7 @@ require_once __DIR__ . '/../includes/header.php';
         <?php foreach ($leads as $l): ?>
         <tr>
             <td style="white-space:nowrap"><?= formatarData($l['criado_em']) ?><br>
-                <small style="color:#454545"><?= date('H:i', strtotime($l['criado_em'])) ?></small></td>
+                <small style="color:#888"><?= date('H:i', strtotime($l['criado_em'])) ?></small></td>
             <td class="td-titulo"><?= htmlspecialchars($l['nome']) ?></td>
             <td>
                 <?php if ($l['telefone']): ?>
@@ -152,7 +152,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </a><br>
                 <?php endif; ?>
                 <?php if ($l['email']): ?>
-                <small style="color:#505050"><?= htmlspecialchars($l['email']) ?></small>
+                <small style="color:#888"><?= htmlspecialchars($l['email']) ?></small>
                 <?php endif; ?>
             </td>
             <td>
@@ -171,7 +171,7 @@ require_once __DIR__ . '/../includes/header.php';
             </td>
             <td class="td-acoes">
                 <select onchange="window.location='?id=<?= $l['id'] ?>&status_lead='+this.value"
-                        style="background:#0A0A0A;border:1px solid #252525;color:#C0C0C0;border-radius:5px;padding:3px 6px;font-size:0.72rem;cursor:pointer">
+                        style="background:var(--admin-bg);border:1px solid var(--admin-border);color:inherit;border-radius:5px;padding:3px 6px;font-size:0.72rem;cursor:pointer">
                     <option value="">Alterar...</option>
                     <option value="novo">Novo</option>
                     <option value="contatado">Contatado</option>
@@ -184,7 +184,7 @@ require_once __DIR__ . '/../includes/header.php';
         <?php if (!empty($l['observacoes'])): ?>
         <tr>
             <td></td>
-            <td colspan="6" style="color:#454545;font-size:0.72rem;padding-top:0;padding-bottom:10px">
+            <td colspan="6" style="color:#888;font-size:0.72rem;padding-top:0;padding-bottom:10px">
                 💬 <?= nl2br(htmlspecialchars($l['observacoes'])) ?>
             </td>
         </tr>

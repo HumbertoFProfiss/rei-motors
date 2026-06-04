@@ -21,6 +21,15 @@ $d = [
     'status' => 'pendente', 'numero_contrato' => '', 'observacoes' => '',
 ];
 
+$formas_pagamento = [
+    'avista'        => 'À Vista',
+    'financiamento' => 'Financiamento',
+    'cartao'        => 'Cartão',
+    'pix'           => 'PIX',
+    'troca'         => 'Troca',
+    'consorcio'     => 'Consórcio',
+];
+
 // Listas para selects
 $veiculos_disponiveis = obterTodas(
     "SELECT id, marca, modelo, ano, preco_venda, tipo_propriedade, consignado_valor_minimo, consignado_proprietario_nome FROM veiculos WHERE status IN ('disponivel','reservado') ORDER BY marca, modelo"
@@ -151,7 +160,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <?php endforeach; ?>
                     </select>
                     <span class="form-grupo__hint">
-                        <a href="../clientes/novo.php" target="_blank" style="color:#D4AF37">+ Cadastrar novo cliente</a>
+                        <a href="../clientes/novo.php" style="color:#D4AF37">+ Cadastrar novo cliente</a>
                     </span>
                 </div>
                 <div class="form-grupo form-grupo--2" id="aviso-consignado" style="display:none">

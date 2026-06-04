@@ -55,7 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-page">
     <div class="login-box">
         <div class="login-logo">
-            <div class="login-logo__nome">👑 Rei Motors</div>
+            <img src="<?= BASE_URL ?>uploads/logo.png" alt="Rei Motors"
+                 style="height:56px;width:auto;object-fit:contain;display:block;margin:0 auto 6px">
             <div class="login-logo__sub">Painel Administrativo</div>
         </div>
 

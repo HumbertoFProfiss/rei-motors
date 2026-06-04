@@ -128,7 +128,7 @@ require_once __DIR__ . '/../includes/header.php';
         <tr>
             <td style="white-space:nowrap"><?= formatarData($ch['data_chamada']) ?></td>
             <td><?= $labels_tipo[$ch['tipo']] ?? $ch['tipo'] ?></td>
-            <td><?= $ch['cliente_nome'] ? htmlspecialchars($ch['cliente_nome']) : '<span style="color:#444">—</span>' ?></td>
+            <td><?= $ch['cliente_nome'] ? htmlspecialchars($ch['cliente_nome']) : '<span style="color:#888">—</span>' ?></td>
             <td><?= htmlspecialchars($ch['vendedor_nome']) ?></td>
             <td style="max-width:320px;white-space:normal"><?= nl2br(htmlspecialchars($ch['descricao'])) ?></td>
             <td>

@@ -15,15 +15,19 @@ $breadcrumb    = [
 
 $erros = [];
 $d = [
-    'veiculo_id'   => (int)($_GET['veiculo_id'] ?? 0),
-    'cliente_id'   => '',
-    'venda_id'     => '',
+    'veiculo_id'    => (int)($_GET['veiculo_id'] ?? 0),
+    'cliente_id'    => '',
+    'venda_id'      => '',
     'tipo_problema' => '',
-    'descricao'    => '',
-    'status'       => 'aberto',
+    'descricao'     => '',
+    'status'        => 'aberto',
     'data_abertura' => date('Y-m-d'),
-    'custo_reparo' => '',
-    'observacoes'  => '',
+    'custo_reparo'  => '',
+    'observacoes'   => '',
+    'fornecedor'    => '',
+    'peca_descricao'=> '',
+    'custo_peca'    => 0,
+    'custo_servico' => 0,
 ];
 
 $veiculos  = obterTodas("SELECT id, marca, modelo, ano FROM veiculos WHERE status = 'vendido' ORDER BY marca, modelo");

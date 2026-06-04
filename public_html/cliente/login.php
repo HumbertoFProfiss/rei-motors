@@ -11,12 +11,15 @@ if (clienteAutenticado()) {
 $erro = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verificarTokenCSRF($_POST['csrf_token'] ?? '')) {
+        $erro = 'Token de segurança inválido. Recarregue a página.';
+    }
     $email = trim($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
 
-    if (empty($email) || empty($senha)) {
+    if (empty($erro) && (empty($email) || empty($senha))) {
         $erro = 'Preencha e-mail e senha.';
-    } else {
+    } elseif (empty($erro)) {
         $cliente = obterUmaLinha(
             "SELECT id, nome, email, senha FROM clientes WHERE email = ? LIMIT 1",
             [$email]
@@ -49,7 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-page">
     <div class="login-box">
         <div class="login-logo">
-            <div class="login-logo__nome">👑 Rei Motors</div>
+            <img src="<?= BASE_URL ?>uploads/logo.png" alt="Rei Motors"
+                 style="height:56px;width:auto;object-fit:contain;display:block;margin:0 auto 6px">
             <div class="login-logo__sub">Área do Cliente</div>
         </div>
 
@@ -60,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(gerarTokenCSRF()) ?>">
             <div class="login-grupo">
                 <label for="email">E-mail</label>
                 <input type="email" id="email" name="email" required

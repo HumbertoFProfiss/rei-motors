@@ -12,6 +12,9 @@ $erros = [];
 $d     = ['nome' => '', 'email' => '', 'telefone' => '', 'cpf' => ''];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verificarTokenCSRF($_POST['csrf_token'] ?? '')) {
+        $erros[] = 'Token de segurança inválido. Recarregue a página.';
+    }
     $d['nome']     = sanitizar($_POST['nome'] ?? '');
     $d['email']    = trim($_POST['email'] ?? '');
     $d['telefone'] = preg_replace('/\D/', '', $_POST['telefone'] ?? '');
@@ -19,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senha         = $_POST['senha'] ?? '';
     $senha_conf    = $_POST['senha_confirma'] ?? '';
 
-    if (empty($d['nome']))                          $erros[] = 'Nome é obrigatório.';
+    if (empty($d['nome']))                           $erros[] = 'Nome é obrigatório.';
     if (empty($d['email']))                         $erros[] = 'E-mail é obrigatório.';
     elseif (!validarEmail($d['email']))             $erros[] = 'E-mail inválido.';
     if (empty($senha))                              $erros[] = 'Senha é obrigatória.';
@@ -75,7 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-page">
     <div class="login-box" style="max-width:420px">
         <div class="login-logo">
-            <div class="login-logo__nome">👑 Rei Motors</div>
+            <img src="<?= BASE_URL ?>uploads/logo.png" alt="Rei Motors"
+                 style="height:56px;width:auto;object-fit:contain;display:block;margin:0 auto 6px">
             <div class="login-logo__sub">Criar conta</div>
         </div>
 
@@ -90,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(gerarTokenCSRF()) ?>">
             <div class="login-grupo">
                 <label for="nome">Nome Completo <span style="color:#ef4444">*</span></label>
                 <input type="text" id="nome" name="nome" required
@@ -109,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                        placeholder="(00) 00000-0000">
             </div>
             <div class="login-grupo">
-                <label for="cpf">CPF <span style="font-size:0.65rem;color:#3A3A3A">(opcional)</span></label>
+                <label for="cpf">CPF <span style="font-size:0.65rem;color:#888">(opcional)</span></label>
                 <input type="text" id="cpf" name="cpf"
                        value="<?= htmlspecialchars($d['cpf'] ? substr($d['cpf'],0,3).'.'.substr($d['cpf'],3,3).'.'.substr($d['cpf'],6,3).'-'.substr($d['cpf'],9,2) : '') ?>"
                        placeholder="000.000.000-00" maxlength="14">

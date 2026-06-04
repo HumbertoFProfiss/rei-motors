@@ -112,7 +112,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <?php endforeach; ?>
                     </select>
                     <span class="form-grupo__hint">
-                        <a href="../clientes/novo.php" target="_blank" style="color:#D4AF37">+ Cadastrar novo cliente</a>
+                        <a href="../clientes/novo.php" style="color:#D4AF37">+ Cadastrar novo cliente</a>
                     </span>
                 </div>
             </div>

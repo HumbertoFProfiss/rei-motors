@@ -122,7 +122,7 @@ $csrf_token = gerarTokenCSRF();
 
     <title><?php echo htmlspecialchars($veiculo['marca'] . ' ' . $veiculo['modelo'] . ' ' . $veiculo['ano']); ?> - <?php echo LOJA_NOME; ?></title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/reset.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/variables.css">

@@ -86,10 +86,10 @@ require_once __DIR__ . '/../includes/header.php';
                 ['Facebook Marketplace','facebook.com/marketplace','Gerenciador de Comércio → Catálogo → Importar planilha CSV'],
             ];
             foreach ($portais as [$nome, $site, $instrucao]): ?>
-            <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px">
+            <div style="background:var(--admin-card);border:1px solid var(--admin-border);border-radius:8px;padding:14px">
                 <div style="font-weight:700;color:#D4AF37;margin-bottom:6px"><?= $nome ?></div>
-                <div style="font-size:0.75rem;color:#666;margin-bottom:8px"><?= $site ?></div>
-                <div style="font-size:0.78rem;color:#999;line-height:1.5"><?= $instrucao ?></div>
+                <div style="font-size:0.75rem;color:#888;margin-bottom:8px"><?= $site ?></div>
+                <div style="font-size:0.78rem;color:#888;line-height:1.5"><?= $instrucao ?></div>
             </div>
             <?php endforeach; ?>
         </div>
@@ -125,7 +125,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <img src="<?= UPLOAD_DIR . htmlspecialchars($v['foto']) ?>"
                      style="width:48px;height:36px;object-fit:cover;border-radius:4px">
                 <?php else: ?>
-                <span style="color:#333">🚗</span>
+                <span>🚗</span>
                 <?php endif; ?>
             </td>
             <td class="td-titulo"><?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?></td>
@@ -134,7 +134,7 @@ require_once __DIR__ . '/../includes/header.php';
             <td><?= formatarKM($v['quilometragem']) ?> km</td>
             <td>
                 <a href="<?= BASE_URL ?>veiculo.php?slug=<?= htmlspecialchars($v['slug']) ?>"
-                   target="_blank" style="color:#D4AF37;font-size:0.75rem">↗ Ver</a>
+                   style="color:#D4AF37;font-size:0.75rem">↗ Ver</a>
             </td>
         </tr>
         <?php endforeach; ?>

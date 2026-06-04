@@ -3,6 +3,15 @@ require_once __DIR__ . '/../../../includes/config.php';
 require_once __DIR__ . '/../../../includes/db.php';
 require_once __DIR__ . '/../../../includes/functions.php';
 
+$formas_pagamento = [
+    'avista'        => 'À Vista',
+    'financiamento' => 'Financiamento',
+    'cartao'        => 'Cartão',
+    'pix'           => 'PIX',
+    'troca'         => 'Troca',
+    'consorcio'     => 'Consórcio',
+];
+
 $titulo_pagina = 'Vendas';
 $pagina_ativa  = 'vendas';
 $admin_root    = '../';
@@ -166,7 +175,7 @@ require_once __DIR__ . '/../includes/header.php';
             <td style="white-space:nowrap"><?= formatarData($v['data_venda']) ?></td>
             <td class="td-titulo">
                 <?= htmlspecialchars($v['marca'].' '.$v['modelo']) ?>
-                <br><small style="color:#454545"><?= $v['ano'] ?></small>
+                <br><small style="color:#888"><?= $v['ano'] ?></small>
             </td>
             <td><?= htmlspecialchars($v['cliente_nome']) ?></td>
             <td><?= htmlspecialchars($v['vendedor_nome']) ?></td>
@@ -191,9 +200,9 @@ require_once __DIR__ . '/../includes/header.php';
                         echo '<span class="badge-admin badge-admin--cancelada">Expirada</span>';
                     }
                 } elseif ($prazo_d > 0) {
-                    echo '<small style="color:#555">' . $prazo_d . 'd</small>';
+                    echo '<small style="color:#888">' . $prazo_d . 'd</small>';
                 } else {
-                    echo '<small style="color:#333">—</small>';
+                    echo '<small style="color:#888">—</small>';
                 }
                 ?>
             </td>
@@ -201,7 +210,7 @@ require_once __DIR__ . '/../includes/header.php';
             <td class="td-acoes">
                 <?php if (ehAdmin()): ?>
                 <select onchange="window.location='?id=<?= $v['id'] ?>&status_venda='+this.value"
-                        style="background:#0A0A0A;border:1px solid #252525;color:#C0C0C0;border-radius:5px;padding:3px 6px;font-size:0.72rem;cursor:pointer">
+                        style="background:var(--admin-bg);border:1px solid var(--admin-border);color:inherit;border-radius:5px;padding:3px 6px;font-size:0.72rem;cursor:pointer">
                     <option value="">Status...</option>
                     <option value="pendente">Pendente</option>
                     <option value="confirmada">Confirmada</option>
@@ -220,7 +229,7 @@ require_once __DIR__ . '/../includes/header.php';
         <?php if (!empty($v['observacoes'])): ?>
         <tr>
             <td></td>
-            <td colspan="8" style="color:#454545;font-size:0.72rem;padding-top:0;padding-bottom:10px">
+            <td colspan="8" style="color:#888;font-size:0.72rem;padding-top:0;padding-bottom:10px">
                 💬 <?= nl2br(htmlspecialchars($v['observacoes'])) ?>
             </td>
         </tr>

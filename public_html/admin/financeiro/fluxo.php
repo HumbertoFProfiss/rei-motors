@@ -176,10 +176,10 @@ require_once __DIR__ . '/../includes/header.php';
                     <?= formatarMoeda($ll) ?>
                 </span>
                 <?php if (($l['custos_adicionais'] ?? 0) > 0): ?>
-                <br><small style="color:#555;font-size:0.7rem">-<?= formatarMoeda($l['custos_adicionais']) ?> custos</small>
+                <br><small style="color:#888;font-size:0.7rem">-<?= formatarMoeda($l['custos_adicionais']) ?> custos</small>
                 <?php endif; ?>
             <?php else: ?>
-                <span style="color:#333">—</span>
+                <span style="color:#888">—</span>
             <?php endif; ?>
             </td>
         </tr>

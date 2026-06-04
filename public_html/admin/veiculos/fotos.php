@@ -130,7 +130,7 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="page__acoes">
         <a href="editar.php?id=<?= $id ?>" class="btn-admin btn-admin--secondary">← Voltar ao Veículo</a>
         <a href="<?= BASE_URL ?>veiculo.php?slug=<?= urlencode($veiculo['slug']) ?>"
-           target="_blank" class="btn-admin btn-admin--secondary">↗ Ver no Site</a>
+           class="btn-admin btn-admin--secondary">↗ Ver no Site</a>
     </div>
 </div>
 
@@ -184,7 +184,7 @@ require_once __DIR__ . '/../includes/header.php';
             </div>
             <?php endforeach; ?>
         </div>
-        <p style="margin-top:12px;font-size:0.72rem;color:#454545">
+        <p style="margin-top:12px;font-size:0.72rem;color:#888">
             ★ Clique em uma foto para defini-la como principal (capa do card e galeria)
         </p>
     </div>

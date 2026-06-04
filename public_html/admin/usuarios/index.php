@@ -75,7 +75,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <?= mb_strtoupper(mb_substr($u['nome'], 0, 1, 'UTF-8'), 'UTF-8') ?>
                     </div>
                     <?= htmlspecialchars($u['nome']) ?>
-                    <?= $u['id'] === (int)$_SESSION['usuario_id'] ? ' <small style="color:#454545">(você)</small>' : '' ?>
+                    <?= $u['id'] === (int)$_SESSION['usuario_id'] ? ' <small style="color:#888">(você)</small>' : '' ?>
                 </div>
             </td>
             <td><?= htmlspecialchars($u['email']) ?></td>

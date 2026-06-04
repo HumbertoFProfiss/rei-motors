@@ -126,25 +126,24 @@ if ($mes_f) {
     $where[] = "DATE_FORMAT(data_vencimento, '%Y-%m') = ?"; $params[] = $mes_f;
 }
 
+$where_sql = 'cr.status IS NOT NULL';
+if ($status_f && array_key_exists($status_f, $status_conta)) {
+    $where_sql .= ' AND cr.status = ?';
+    $params[]   = $status_f;
+}
+if ($mes_f) {
+    $where_sql .= " AND DATE_FORMAT(cr.data_vencimento,'%Y-%m') = ?";
+    $params[]   = $mes_f;
+}
+
 $contas = obterTodas(
     "SELECT cr.*, vd.numero_contrato, cl.nome as cliente_nome
      FROM contas_receber cr
      LEFT JOIN vendas vd ON vd.id = cr.venda_id
      LEFT JOIN clientes cl ON cl.id = vd.cliente_id
-     WHERE " . implode(' AND ', array_map(fn($w) => "cr.$w", str_replace(['1=1'], ['1=1'], [$where[0]])) + $where) . "
+     WHERE $where_sql
      ORDER BY cr.data_vencimento ASC",
     $params
-);
-
-// Fallback query mais simples
-$contas = obterTodas(
-    "SELECT cr.*, vd.numero_contrato, cl.nome as cliente_nome
-     FROM contas_receber cr
-     LEFT JOIN vendas vd ON vd.id = cr.venda_id
-     LEFT JOIN clientes cl ON cl.id = vd.cliente_id
-     WHERE cr.status" . ($status_f ? " = '$status_f'" : " IS NOT NULL") .
-     ($mes_f ? " AND DATE_FORMAT(cr.data_vencimento,'%Y-%m') = '$mes_f'" : "") .
-     " ORDER BY cr.data_vencimento ASC"
 );
 
 // Totais

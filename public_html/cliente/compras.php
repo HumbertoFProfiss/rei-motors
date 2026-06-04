@@ -20,7 +20,7 @@ $compras = obterTodas(
     [$id]
 );
 
-$formas_pagamento = ['avista'=>'À Vista','financiado'=>'Financiado','consorcio'=>'Consórcio','troca'=>'Troca + Valor'];
+$formas_pagamento = ['avista'=>'À Vista','financiamento'=>'Financiamento','cartao'=>'Cartão','pix'=>'PIX','troca'=>'Troca','consorcio'=>'Consórcio'];
 $status_labels    = ['pendente'=>'Pendente','confirmada'=>'Confirmada','entregue'=>'Entregue','cancelada'=>'Cancelada'];
 $status_badge     = ['pendente'=>'gold','confirmada'=>'blue','entregue'=>'green','cancelada'=>'red'];
 $combustiveis_l   = ['gasolina'=>'Gasolina','flex'=>'Flex','etanol'=>'Etanol','diesel'=>'Diesel','eletrico'=>'Elétrico'];
@@ -38,9 +38,9 @@ $cambios_l        = ['manual'=>'Manual','automatico'=>'Automático','cvt'=>'CVT'
     <?php foreach ($compras as $c): ?>
     <?php
     $s       = $c['status'];
-    $prazo   = (int)($c['prazo_garantia_meses'] ?? 0);
+    $prazo   = (int)($c['prazo_garantia_dias'] ?? 0);
     $tem_gar = $prazo > 0 && !empty($c['data_entrega']);
-    $fim_g   = $tem_gar ? strtotime($c['data_entrega'] . ' +' . $prazo . ' months') : 0;
+    $fim_g   = $tem_gar ? strtotime($c['data_entrega']) + $prazo * 86400 : 0;
     $dias_g  = $fim_g ? (int)ceil(($fim_g - time()) / 86400) : 0;
     ?>
     <div class="veiculo-card">
@@ -69,38 +69,30 @@ $cambios_l        = ['manual'=>'Manual','automatico'=>'Automático','cvt'=>'CVT'
                     <?= $status_labels[$s] ?? ucfirst($s) ?>
                 </span>
                 <?php if ($tem_gar): ?>
-                    <?php if ($dias_g > 30): ?>
-                    <span class="badge badge--green">🛡️ Garantia: <?= $dias_g ?>d</span>
-                    <?php elseif ($dias_g > 0): ?>
-                    <span class="badge badge--gold">🛡️ Garantia: <?= $dias_g ?>d</span>
+                    <?php if ($dias_g > 0): ?>
+                    <span class="badge badge--green">🛡️ Garantia ativa</span>
                     <?php else: ?>
-                    <span class="badge badge--gray">🛡️ Expirada</span>
+                    <span class="badge badge--gray">🛡️ Garantia expirada</span>
                     <?php endif; ?>
                 <?php endif; ?>
                 <span class="badge badge--gray"><?= $formas_pagamento[$c['forma_pagamento']] ?? $c['forma_pagamento'] ?></span>
             </div>
 
             <!-- detalhes da compra -->
-            <div style="display:flex;gap:24px;flex-wrap:wrap;font-size:0.78rem;color:#555">
+            <div style="display:flex;gap:24px;flex-wrap:wrap;font-size:0.78rem;color:#888">
                 <div>
-                    <div style="color:#3A3A3A;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Data da compra</div>
+                    <div style="color:#888;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Data da compra</div>
                     <?= formatarData($c['data_venda']) ?>
                 </div>
                 <?php if ($c['data_entrega']): ?>
                 <div>
-                    <div style="color:#3A3A3A;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Entrega</div>
+                    <div style="color:#888;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Entrega</div>
                     <?= formatarData($c['data_entrega']) ?>
-                </div>
-                <?php endif; ?>
-                <?php if ($tem_gar): ?>
-                <div>
-                    <div style="color:#3A3A3A;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Garantia até</div>
-                    <?= date('d/m/Y', $fim_g) ?>
                 </div>
                 <?php endif; ?>
                 <?php if ($c['numero_contrato']): ?>
                 <div>
-                    <div style="color:#3A3A3A;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Contrato</div>
+                    <div style="color:#888;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Contrato</div>
                     <?= htmlspecialchars($c['numero_contrato']) ?>
                 </div>
                 <?php endif; ?>
@@ -109,13 +101,13 @@ $cambios_l        = ['manual'=>'Manual','automatico'=>'Automático','cvt'=>'CVT'
             <!-- checklist documentação -->
             <?php if ($s !== 'pendente'): ?>
             <div style="margin-top:12px;display:flex;gap:16px;flex-wrap:wrap;font-size:0.78rem">
-                <span style="color:<?= $c['recibo_emitido'] ? '#4ade80' : '#3A3A3A' ?>">
+                <span style="color:<?= $c['recibo_emitido'] ? '#4ade80' : '#888' ?>">
                     <?= $c['recibo_emitido'] ? '✓' : '○' ?> Recibo emitido
                 </span>
-                <span style="color:<?= $c['recibo_entregue'] ? '#4ade80' : '#3A3A3A' ?>">
+                <span style="color:<?= $c['recibo_entregue'] ? '#4ade80' : '#888' ?>">
                     <?= $c['recibo_entregue'] ? '✓' : '○' ?> Recibo entregue
                 </span>
-                <span style="color:<?= $s === 'entregue' ? '#4ade80' : '#3A3A3A' ?>">
+                <span style="color:<?= $s === 'entregue' ? '#4ade80' : '#888' ?>">
                     <?= $s === 'entregue' ? '✓' : '○' ?> Carro entregue
                 </span>
             </div>

@@ -33,7 +33,12 @@ $status_garantia = [
 ];
 
 $erros = [];
-$d = $chamado;
+$d = array_merge([
+    'fornecedor'    => '',
+    'peca_descricao'=> '',
+    'custo_peca'    => 0,
+    'custo_servico' => 0,
+], $chamado);
 
 $veiculos = obterTodas("SELECT id, marca, modelo, ano FROM veiculos WHERE status = 'vendido' ORDER BY marca, modelo");
 $clientes = obterTodas("SELECT id, nome, cpf FROM clientes ORDER BY nome");

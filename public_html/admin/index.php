@@ -3,6 +3,13 @@ require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/functions.php';
 
+$status_veiculo = [
+    'disponivel' => 'Disponível',
+    'reservado'  => 'Reservado',
+    'vendido'    => 'Vendido',
+    'inativo'    => 'Inativo',
+];
+
 $titulo_pagina = 'Dashboard';
 $pagina_ativa  = 'dashboard';
 $breadcrumb    = [];
@@ -237,7 +244,7 @@ $ultimos_veiculos = obterTodas(
             <tr>
                 <td class="td-titulo">
                     <?= htmlspecialchars($v['marca'].' '.$v['modelo']) ?>
-                    <br><small style="color:#454545"><?= $v['ano'] ?></small>
+                    <br><small style="color:#888"><?= $v['ano'] ?></small>
                 </td>
                 <td><?= formatarMoeda($v['preco_venda']) ?></td>
                 <td><span class="badge-admin badge-admin--<?= $v['status'] ?>"><?= $status_veiculo[$v['status']] ?? $v['status'] ?></span></td>
@@ -278,7 +285,7 @@ $ultimos_veiculos = obterTodas(
     var ctx = document.getElementById('chartFat12m');
     if (!ctx) return;
 
-    new Chart(ctx, {
+    var fatChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: raw.labels,
@@ -309,8 +316,9 @@ $ultimos_veiculos = obterTodas(
         },
         options: {
             responsive: true,
+            devicePixelRatio: 1.75,
             plugins: {
-                legend: { display: true, labels: { color: '#999', boxWidth: 14, font: { size: 12 } } },
+                legend: { display: true, labels: { color: '#ccc', boxWidth: 16, font: { size: 14, weight: 'bold', family: 'Segoe UI, system-ui, sans-serif' } } },
                 tooltip: {
                     callbacks: {
                         label: function (c) {
@@ -320,10 +328,11 @@ $ultimos_veiculos = obterTodas(
                 }
             },
             scales: {
-                x: { ticks: { color: '#999' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                x: { ticks: { color: '#aaa', font: { size: 13 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
                 y: {
                     ticks: {
-                        color: '#999',
+                        color: '#aaa',
+                        font: { size: 13 },
                         callback: function (v) { return 'R$ ' + v.toLocaleString('pt-BR'); }
                     },
                     grid: { color: 'rgba(255,255,255,0.04)' }
@@ -331,6 +340,19 @@ $ultimos_veiculos = obterTodas(
             }
         }
     });
+
+    window.onThemeChange = function(isLight) {
+        var tickColor   = isLight ? '#555' : '#aaa';
+        var gridColor   = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.04)';
+        var legendColor = isLight ? '#333' : '#ccc';
+        fatChart.options.plugins.legend.labels.color = legendColor;
+        fatChart.options.scales.x.ticks.color = tickColor;
+        fatChart.options.scales.x.grid.color  = gridColor;
+        fatChart.options.scales.y.ticks.color = tickColor;
+        fatChart.options.scales.y.grid.color  = gridColor;
+        fatChart.update();
+    };
+    if (document.body.classList.contains('light')) window.onThemeChange(true);
 })();
 </script>
 

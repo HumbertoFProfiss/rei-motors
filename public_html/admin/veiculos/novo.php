@@ -11,6 +11,28 @@ $breadcrumb    = [
     ['label' => 'Novo', 'url' => ''],
 ];
 
+$combustiveis = [
+    'flex'     => 'Flex',
+    'gasolina' => 'Gasolina',
+    'etanol'   => 'Etanol',
+    'diesel'   => 'Diesel',
+    'eletrico' => 'Elétrico',
+    'hibrido'  => 'Híbrido',
+    'gnv'      => 'GNV',
+];
+$cambios = [
+    'manual'     => 'Manual',
+    'automatico' => 'Automático',
+    'cvt'        => 'CVT',
+    'automatizado'=> 'Automatizado',
+];
+$status_veiculo = [
+    'disponivel' => 'Disponível',
+    'reservado'  => 'Reservado',
+    'vendido'    => 'Vendido',
+    'inativo'    => 'Inativo',
+];
+
 $erros = [];
 $d = [
     'marca' => '', 'modelo' => '', 'ano' => (int)date('Y'),

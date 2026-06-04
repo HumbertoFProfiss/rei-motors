@@ -135,7 +135,7 @@ require_once __DIR__ . '/../includes/header.php';
             <td class="td-titulo">
                 <?= htmlspecialchars($v['marca'].' '.$v['modelo']) ?>
                 <?php if ($v['cor']): ?>
-                <br><small style="color:#454545;font-weight:400"><?= htmlspecialchars($v['cor']) ?></small>
+                <br><small style="color:#888;font-weight:400"><?= htmlspecialchars($v['cor']) ?></small>
                 <?php endif; ?>
             </td>
             <td><?= $v['ano'] ?></td>

@@ -32,7 +32,7 @@ if ($_SESSION[$key]['count'] > 5) {
     exit;
 }
 
-$origens_permitidas = ['simulador', 'estoque', 'site'];
+$origens_permitidas = ['simulador', 'estoque', 'site', 'formulario_interesse', 'venda_seu_carro'];
 
 $nome     = sanitizar($_POST['nome']     ?? '');
 $telefone = sanitizar($_POST['telefone'] ?? '');
