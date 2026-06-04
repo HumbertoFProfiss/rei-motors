@@ -3,6 +3,13 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions.php';
 
+// Favoritos do cliente logado
+$favoritos_ids = [];
+if (clienteAutenticado()) {
+    $favs = obterTodas("SELECT veiculo_id FROM cliente_favoritos WHERE cliente_id = ?", [$_SESSION['cliente_id']]);
+    foreach ($favs as $f) $favoritos_ids[] = (int)$f['veiculo_id'];
+}
+
 // ===== FILTROS =====
 
 $filtros = [
@@ -410,6 +417,12 @@ if ($filtros['marca']) $titulo_pagina = 'Carros ' . $filtros['marca'];
                                        class="btn btn--small btn--secondary" target="_blank">
                                         WhatsApp
                                     </a>
+                                    <?php $fav = in_array((int)$carro['id'], $favoritos_ids); ?>
+                                    <button class="btn-fav<?= $fav ? ' ativo' : '' ?>"
+                                            data-id="<?= $carro['id'] ?>"
+                                            title="<?= $fav ? 'Remover dos favoritos' : 'Salvar nos favoritos' ?>">
+                                        <?= $fav ? '❤️' : '🤍' ?>
+                                    </button>
                                 </div>
                             </div>
                         </article>

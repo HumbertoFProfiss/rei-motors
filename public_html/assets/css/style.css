@@ -560,3 +560,28 @@ section {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== BOTÃO FAVORITO ===== */
+.btn-fav {
+    background: none;
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-text-secondary);
+    line-height: 1;
+}
+.btn-fav:hover,
+.btn-fav.ativo {
+    border-color: #e53e3e;
+    background: rgba(229,62,62,0.08);
+}
+.btn-fav--grande {
+    padding: 12px 20px;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}

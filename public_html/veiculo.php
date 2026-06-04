@@ -3,6 +3,16 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/config.php';
 require_once __DIR__ . '/../includes/functions.php';
 
+// Favorito do cliente logado
+$e_favorito = false;
+if (clienteAutenticado()) {
+    $chk = obterUmaLinha(
+        "SELECT id FROM cliente_favoritos WHERE cliente_id = ? AND veiculo_id = (SELECT id FROM veiculos WHERE slug = ? LIMIT 1)",
+        [$_SESSION['cliente_id'], sanitizar($_GET['slug'] ?? '')]
+    );
+    $e_favorito = (bool)$chk;
+}
+
 // ===== BUSCAR VEÍCULO =====
 
 $slug = sanitizar($_GET['slug'] ?? '');
@@ -253,6 +263,11 @@ $csrf_token = gerarTokenCSRF();
                         <a href="#interesse" class="btn btn--large btn--secondary">
                             📩 Quero mais informações
                         </a>
+                        <button class="btn-fav btn-fav--grande<?= $e_favorito ? ' ativo' : '' ?>"
+                                data-id="<?= $veiculo['id'] ?>"
+                                title="<?= $e_favorito ? 'Remover dos favoritos' : 'Salvar nos favoritos' ?>">
+                            <?= $e_favorito ? '❤️' : '🤍' ?> <?= $e_favorito ? 'Salvo' : 'Salvar' ?>
+                        </button>
                     </div>
 
                     <!-- Specs rápidas -->

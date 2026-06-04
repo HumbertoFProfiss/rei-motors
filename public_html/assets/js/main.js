@@ -73,6 +73,36 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 5000);
     }
 
+    // ===== BOTÃO FAVORITO =====
+    document.querySelectorAll('.btn-fav').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var id = this.dataset.id;
+            var self = this;
+            fetch('api/favorito.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'veiculo_id=' + id
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.ok === false && data.erro === 'Login necessário') {
+                    window.location.href = 'cliente/login.php';
+                    return;
+                }
+                if (data.acao === 'adicionado') {
+                    self.classList.add('ativo');
+                    self.innerHTML = self.classList.contains('btn-fav--grande') ? '❤️ Salvo' : '❤️';
+                    self.title = 'Remover dos favoritos';
+                } else {
+                    self.classList.remove('ativo');
+                    self.innerHTML = self.classList.contains('btn-fav--grande') ? '🤍 Salvar' : '🤍';
+                    self.title = 'Salvar nos favoritos';
+                }
+            })
+            .catch(function () {});
+        });
+    });
+
     // ===== FEEDBACK VISUAL em links WhatsApp =====
     document.querySelectorAll('a[href*="wa.me"]').forEach(function (link) {
         link.addEventListener('click', function () {
