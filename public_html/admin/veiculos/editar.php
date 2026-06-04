@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../../../includes/config.php';
 require_once __DIR__ . '/../../../includes/db.php';
 require_once __DIR__ . '/../../../includes/functions.php';
@@ -349,7 +349,7 @@ require_once __DIR__ . '/../includes/header.php';
     if (!btnBuscar) return;
 
     function norm(s) {
-        return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+        return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
     }
     function lev(a, b) {
         var m = a.length, n = b.length, i, j;
