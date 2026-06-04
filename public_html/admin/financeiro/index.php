@@ -28,6 +28,33 @@ if (isset($_GET['marcar'], $_GET['id'])) {
         $upd = ['status' => $acao];
         if ($acao === 'paga') $upd['data_pagamento'] = date('Y-m-d');
         atualizar('contas_pagar', $upd, 'id = ?', [$cid]);
+
+        // Gerar próxima recorrência se aplicável
+        if ($acao === 'paga') {
+            $conta = obterUmaLinha("SELECT * FROM contas_pagar WHERE id = ?", [$cid]);
+            if ($conta && ($conta['recorrencia'] ?? 'nenhuma') !== 'nenhuma') {
+                $intervalos = ['mensal' => '+1 month', 'bimestral' => '+2 months', 'trimestral' => '+3 months', 'anual' => '+1 year'];
+                $intervalo  = $intervalos[$conta['recorrencia']] ?? null;
+                if ($intervalo) {
+                    $prox_venc = date('Y-m-d', strtotime($conta['data_vencimento'] . ' ' . $intervalo));
+                    $ja_existe = obterUmaLinha(
+                        "SELECT id FROM contas_pagar WHERE descricao = ? AND data_vencimento = ? AND status = 'pendente'",
+                        [$conta['descricao'], $prox_venc]
+                    );
+                    if (!$ja_existe) {
+                        inserir('contas_pagar', [
+                            'descricao'       => $conta['descricao'],
+                            'valor'           => $conta['valor'],
+                            'data_vencimento' => $prox_venc,
+                            'categoria'       => $conta['categoria'],
+                            'status'          => 'pendente',
+                            'recorrencia'     => $conta['recorrencia'],
+                            'observacoes'     => $conta['observacoes'],
+                        ]);
+                    }
+                }
+            }
+        }
     }
     header('Location: ' . ADMIN_URL . 'financeiro/?msg=atualizado');
     exit;
@@ -42,16 +69,60 @@ if (isset($_GET['deletar'])) {
 }
 
 // ADD
+// Despesas fixas recorrentes (quick-add via GET)
+$recorrentes = [
+    'aluguel'   => ['label' => 'Aluguel',           'categoria' => 'outro'],
+    'agua'      => ['label' => 'Água',               'categoria' => 'outro'],
+    'luz'       => ['label' => 'Luz',                'categoria' => 'outro'],
+    'internet'  => ['label' => 'Internet/Telefone',  'categoria' => 'outro'],
+    'limpeza'   => ['label' => 'Limpeza',             'categoria' => 'outro'],
+    'marketing' => ['label' => 'Marketing',           'categoria' => 'outro'],
+    'trafego'   => ['label' => 'Tráfego Pago',        'categoria' => 'outro'],
+    'outros'    => ['label' => 'Outros',              'categoria' => 'outro'],
+];
+
+if (isset($_GET['recorrente']) && array_key_exists($_GET['recorrente'], $recorrentes)) {
+    $chave = $_GET['recorrente'];
+    $label = $recorrentes[$chave]['label'];
+    $mes_atual = date('Y-m');
+    $ja_existe = obterUmaLinha(
+        "SELECT id FROM contas_pagar WHERE descricao = ? AND DATE_FORMAT(data_vencimento,'%Y-%m') = ?",
+        [$label, $mes_atual]
+    );
+    if (!$ja_existe) {
+        inserir('contas_pagar', [
+            'descricao'       => $label,
+            'valor'           => 0.01,
+            'data_vencimento' => date('Y-m-') . '10',
+            'categoria'       => $recorrentes[$chave]['categoria'],
+            'status'          => 'pendente',
+            'recorrencia'     => 'mensal',
+            'observacoes'     => 'Adicionado via atalho — atualize o valor.',
+        ]);
+    }
+    header('Location: ' . ADMIN_URL . 'financeiro/?msg=recorrente&edit=' . ($ja_existe ? $ja_existe['id'] : ''));
+    exit;
+}
+
 $erros   = [];
 $sucesso = '';
 
+$recorrencias = [
+    'nenhuma'     => 'Sem recorrência',
+    'mensal'      => 'Mensal',
+    'bimestral'   => 'Bimestral',
+    'trimestral'  => 'Trimestral',
+    'anual'       => 'Anual',
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $desc      = sanitizar($_POST['descricao']      ?? '');
-    $valor     = (float)str_replace(['.', ','], ['', '.'], $_POST['valor'] ?? '0');
-    $venc      = sanitizar($_POST['data_vencimento'] ?? '');
-    $categoria = sanitizar($_POST['categoria']       ?? '');
-    $nr_nf     = sanitizar($_POST['numero_nf']       ?? '');
-    $obs       = sanitizar($_POST['observacoes']     ?? '');
+    $desc       = sanitizar($_POST['descricao']      ?? '');
+    $valor      = (float)str_replace(['.', ','], ['', '.'], $_POST['valor'] ?? '0');
+    $venc       = sanitizar($_POST['data_vencimento'] ?? '');
+    $categoria  = sanitizar($_POST['categoria']       ?? '');
+    $nr_nf      = sanitizar($_POST['numero_nf']       ?? '');
+    $obs        = sanitizar($_POST['observacoes']     ?? '');
+    $recorr     = array_key_exists($_POST['recorrencia'] ?? '', $recorrencias) ? $_POST['recorrencia'] : 'nenhuma';
 
     if (empty($desc))    $erros[] = 'Descrição é obrigatória.';
     if ($valor <= 0)     $erros[] = 'Valor inválido.';
@@ -66,6 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'status'          => 'pendente',
             'numero_nf'       => $nr_nf ?: null,
             'observacoes'     => $obs ?: null,
+            'recorrencia'     => $recorr,
         ]);
         $sucesso = 'Conta adicionada.';
     }
@@ -104,6 +176,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <?php if ($msg === 'atualizado'): ?><div class="alert-admin alert-admin--success">✓ Status atualizado.</div><?php endif; ?>
 <?php if ($msg === 'deletado'):   ?><div class="alert-admin alert-admin--success">✓ Conta removida.</div><?php endif; ?>
+<?php if ($msg === 'recorrente'): ?><div class="alert-admin alert-admin--success">✓ Despesa do mês adicionada — atualize o valor.</div><?php endif; ?>
 <?php if ($sucesso): ?><div class="alert-admin alert-admin--success">✓ <?= htmlspecialchars($sucesso) ?></div><?php endif; ?>
 <?php if ($erros): ?>
 <div class="alert-admin alert-admin--error">
@@ -136,6 +209,20 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<!-- ATALHOS DESPESAS FIXAS -->
+<div class="table-container" style="margin-bottom:1rem">
+    <div class="table-header"><h2 class="table-header__titulo">⚡ Despesas Fixas do Mês</h2></div>
+    <div style="padding:1rem;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span style="color:var(--admin-text-muted);font-size:0.78rem;margin-right:4px">Adicionar ao mês atual:</span>
+        <?php foreach ($recorrentes as $chave => $info): ?>
+        <a href="?recorrente=<?= $chave ?>" class="btn-admin btn-admin--secondary btn-admin--sm"
+           style="font-size:0.75rem" title="Adicionar <?= htmlspecialchars($info['label']) ?> deste mês">
+            <?= htmlspecialchars($info['label']) ?>
+        </a>
+        <?php endforeach; ?>
+    </div>
+</div>
+
 <!-- ADICIONAR -->
 <div class="table-container" style="margin-bottom:1.5rem">
     <div class="table-header"><h2 class="table-header__titulo">Nova Conta a Pagar</h2></div>
@@ -160,6 +247,14 @@ require_once __DIR__ . '/../includes/header.php';
                         <option value="">Selecione...</option>
                         <?php foreach ($categorias_despesas as $k => $v): ?>
                         <option value="<?= $k ?>" <?= ($_POST['categoria'] ?? '') === $k ? 'selected' : '' ?>><?= htmlspecialchars($v) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-grupo">
+                    <label>Recorrência</label>
+                    <select name="recorrencia">
+                        <?php foreach ($recorrencias as $k => $v): ?>
+                        <option value="<?= $k ?>" <?= ($_POST['recorrencia'] ?? 'nenhuma') === $k ? 'selected' : '' ?>><?= htmlspecialchars($v) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -200,7 +295,7 @@ require_once __DIR__ . '/../includes/header.php';
     <?php if ($contas): ?>
     <table class="table">
         <thead>
-            <tr><th>Vencimento</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Status</th><th>Ações</th></tr>
+            <tr><th>Vencimento</th><th>Descrição</th><th>Categoria</th><th>Recorrência</th><th>Valor</th><th>Status</th><th>Ações</th></tr>
         </thead>
         <tbody>
         <?php foreach ($contas as $c): ?>
@@ -216,6 +311,7 @@ require_once __DIR__ . '/../includes/header.php';
             </td>
             <td class="td-titulo"><?= htmlspecialchars($c['descricao']) ?></td>
             <td><?= $c['categoria'] ? htmlspecialchars($categorias_despesas[$c['categoria']] ?? $c['categoria']) : '—' ?></td>
+            <td><?= ($c['recorrencia'] ?? 'nenhuma') !== 'nenhuma' ? '<span style="color:#D4AF37;font-size:0.75rem">🔄 ' . htmlspecialchars($recorrencias[$c['recorrencia']] ?? '') . '</span>' : '<span style="color:#444">—</span>' ?></td>
             <td><?= formatarMoeda($c['valor']) ?></td>
             <td><span class="badge-admin badge-admin--<?= $badge ?>"><?= $status_conta[$st_real] ?? $st_real ?></span></td>
             <td class="td-acoes">

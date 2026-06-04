@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['valor_troca']       = (float)str_replace(['.', ','], ['', '.'], $_POST['valor_troca'] ?? '0');
     $d['data_venda']             = sanitizar($_POST['data_venda'] ?? date('Y-m-d'));
     $d['data_entrega']           = !empty($_POST['data_entrega']) ? sanitizar($_POST['data_entrega']) : null;
-    $d['prazo_garantia_meses']   = (int)($_POST['prazo_garantia_meses'] ?? 3);
+    $d['prazo_garantia_dias']    = (int)($_POST['prazo_garantia_dias'] ?? 90);
     $d['status']                 = 'pendente';
     $d['numero_contrato']   = sanitizar($_POST['numero_contrato'] ?? '');
     $d['observacoes']       = sanitizar($_POST['observacoes'] ?? '');
@@ -262,10 +262,10 @@ require_once __DIR__ . '/../includes/header.php';
                            placeholder="REI-2025-001">
                 </div>
                 <div class="form-grupo">
-                    <label>Prazo de Garantia (meses)</label>
-                    <input type="number" name="prazo_garantia_meses" min="0" max="60"
-                           value="<?= (int)($d['prazo_garantia_meses'] ?? 3) ?>">
-                    <span class="form-grupo__hint">Padrão: 3 meses. Digite 0 para sem garantia.</span>
+                    <label>Prazo de Garantia (dias)</label>
+                    <input type="number" name="prazo_garantia_dias" min="0" max="1825"
+                           value="<?= (int)($d['prazo_garantia_dias'] ?? 90) ?>">
+                    <span class="form-grupo__hint">Padrão: 90 dias. Digite 0 para sem garantia.</span>
                 </div>
             </div>
             <div style="margin-top:14px">

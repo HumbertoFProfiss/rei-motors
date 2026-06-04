@@ -51,13 +51,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $custo_raw           = trim($_POST['custo_reparo'] ?? '');
     $d['custo_reparo']   = $custo_raw !== '' ? (float)str_replace(['.', ','], ['', '.'], $custo_raw) : null;
     $d['observacoes']    = sanitizar($_POST['observacoes'] ?? '') ?: null;
+    $d['fornecedor']     = sanitizar($_POST['fornecedor']    ?? '') ?: null;
+    $d['peca_descricao'] = sanitizar($_POST['peca_descricao'] ?? '') ?: null;
+    $cp = trim($_POST['custo_peca']    ?? '');
+    $cs = trim($_POST['custo_servico'] ?? '');
+    $d['custo_peca']    = $cp !== '' ? (float)str_replace(['.', ','], ['', '.'], $cp) : 0;
+    $d['custo_servico'] = $cs !== '' ? (float)str_replace(['.', ','], ['', '.'], $cs) : 0;
+    if ($custo_raw === '') {
+        $d['custo_reparo'] = $d['custo_peca'] + $d['custo_servico'];
+    }
 
     if ($d['veiculo_id'] <= 0)    $erros[] = 'Selecione o veículo.';
     if (empty($d['tipo_problema'])) $erros[] = 'Informe o tipo do problema.';
 
     if (empty($erros)) {
         $campos = ['veiculo_id', 'cliente_id', 'tipo_problema', 'descricao', 'status',
-                   'data_abertura', 'data_resolucao', 'custo_reparo', 'observacoes'];
+                   'data_abertura', 'data_resolucao', 'custo_reparo', 'observacoes',
+                   'fornecedor', 'peca_descricao', 'custo_peca', 'custo_servico'];
         $update = array_intersect_key($d, array_flip($campos));
         atualizar('garantias_chamados', $update, 'id = ?', [$id]);
 
@@ -118,12 +128,6 @@ require_once __DIR__ . '/../includes/header.php';
                     </select>
                 </div>
                 <div class="form-grupo">
-                    <label>Custo do Reparo (R$)</label>
-                    <input type="text" name="custo_reparo"
-                           value="<?= $d['custo_reparo'] !== null ? number_format((float)$d['custo_reparo'], 2, ',', '.') : '' ?>"
-                           placeholder="0,00">
-                </div>
-                <div class="form-grupo">
                     <label>Data de Abertura</label>
                     <input type="date" name="data_abertura" value="<?= htmlspecialchars($d['data_abertura']) ?>">
                 </div>
@@ -139,6 +143,45 @@ require_once __DIR__ . '/../includes/header.php';
                     <label>Descrição Detalhada</label>
                     <textarea name="descricao" rows="3"><?= htmlspecialchars($d['descricao']) ?></textarea>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="form-section__titulo">🔧 Fornecedor e Peças</div>
+        <div class="form-section__body">
+            <div class="form-grid">
+                <div class="form-grupo form-grupo--2">
+                    <label>Fornecedor do Serviço</label>
+                    <input type="text" name="fornecedor"
+                           value="<?= htmlspecialchars($d['fornecedor'] ?? '') ?>"
+                           placeholder="Ex: Oficina Central Automecânica">
+                </div>
+                <div class="form-grupo form-grupo--2">
+                    <label>Peça / Material Utilizado</label>
+                    <input type="text" name="peca_descricao"
+                           value="<?= htmlspecialchars($d['peca_descricao'] ?? '') ?>"
+                           placeholder="Ex: Câmbio automático remanufaturado ZF 6HP">
+                </div>
+                <div class="form-grupo">
+                    <label>Custo da Peça (R$)</label>
+                    <input type="text" name="custo_peca" id="custoPeca"
+                           value="<?= ($d['custo_peca'] ?? 0) > 0 ? number_format((float)$d['custo_peca'], 2, ',', '.') : '' ?>"
+                           placeholder="0,00" oninput="calcTotal()">
+                </div>
+                <div class="form-grupo">
+                    <label>Custo do Serviço / M.O. (R$)</label>
+                    <input type="text" name="custo_servico" id="custoServico"
+                           value="<?= ($d['custo_servico'] ?? 0) > 0 ? number_format((float)$d['custo_servico'], 2, ',', '.') : '' ?>"
+                           placeholder="0,00" oninput="calcTotal()">
+                </div>
+                <div class="form-grupo">
+                    <label>Custo Total do Reparo (R$)</label>
+                    <input type="text" name="custo_reparo" id="custoTotal"
+                           value="<?= $d['custo_reparo'] !== null ? number_format((float)$d['custo_reparo'], 2, ',', '.') : '' ?>"
+                           placeholder="Calculado automaticamente">
+                    <span class="form-grupo__hint">Preencha manualmente para sobrescrever. Abate da margem do veículo.</span>
+                </div>
                 <div class="form-grupo form-grupo--2">
                     <label>Observações / Solução Aplicada</label>
                     <textarea name="observacoes" rows="3"><?= htmlspecialchars($d['observacoes'] ?? '') ?></textarea>
@@ -152,5 +195,19 @@ require_once __DIR__ . '/../includes/header.php';
         <button type="submit" class="btn-admin btn-admin--primary">Salvar Chamado</button>
     </div>
 </form>
+
+<script>
+function calcTotal() {
+    var toFloat = function(s) {
+        return parseFloat((s || '0').replace(/\./g,'').replace(',','.')) || 0;
+    };
+    var total = toFloat(document.getElementById('custoPeca').value)
+              + toFloat(document.getElementById('custoServico').value);
+    var campo = document.getElementById('custoTotal');
+    if (total > 0 && campo.value === '') {
+        campo.placeholder = 'R$ ' + total.toFixed(2).replace('.',',');
+    }
+}
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

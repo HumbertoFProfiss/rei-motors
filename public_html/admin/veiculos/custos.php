@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($erros)) {
-        inserir('custos_veiculo', [
+        $custo_id = inserir('custos_veiculo', [
             'veiculo_id'   => $id,
             'categoria'    => $categoria,
             'descricao'    => $descricao,
@@ -75,7 +75,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'numero_nf'    => $numero_nf ?: null,
             'arquivo_nf'   => $arquivo_nf,
         ]);
-        $sucesso = 'Custo adicionado.';
+
+        // Vincular com contas a pagar se solicitado
+        if (!empty($_POST['lancar_contas_pagar'])) {
+            $veiculo_desc = $veiculo['marca'] . ' ' . $veiculo['modelo'] . ' ' . $veiculo['ano'];
+            $cp_id = inserir('contas_pagar', [
+                'descricao'       => $descricao . ' — ' . $veiculo_desc,
+                'valor'           => $valor,
+                'data_vencimento' => $data_desp,
+                'categoria'       => $categoria,
+                'status'          => 'pendente',
+                'numero_nf'       => $numero_nf ?: null,
+                'veiculo_id'      => $id,
+                'observacoes'     => 'Gerado automaticamente de custos_veiculo #' . $custo_id,
+            ]);
+        }
+
+        $sucesso = 'Custo adicionado' . (!empty($_POST['lancar_contas_pagar']) ? ' e lançado em Contas a Pagar.' : '.');
     }
 }
 
@@ -192,7 +208,11 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="file" name="arquivo_nf" accept=".pdf,image/jpeg,image/png,image/webp">
                 </div>
             </div>
-            <div class="form-acoes" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--admin-border)">
+            <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--admin-border);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;color:var(--admin-text-muted)">
+                    <input type="checkbox" name="lancar_contas_pagar" value="1" style="width:16px;height:16px">
+                    Lançar também em <strong style="color:var(--admin-text)">Contas a Pagar</strong>
+                </label>
                 <button type="submit" class="btn-admin btn-admin--primary">+ Adicionar Despesa</button>
             </div>
         </form>

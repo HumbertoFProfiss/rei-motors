@@ -20,7 +20,32 @@ $status_conta = [
     'cancelada' => 'Cancelada',
 ];
 
-// Marcar recebida / cancelada
+// DELETE
+if (isset($_GET['deletar'])) {
+    $cid = (int)$_GET['deletar'];
+    if ($cid > 0) executarQuery("DELETE FROM contas_receber WHERE id = ?", [$cid]);
+    header('Location: ' . ADMIN_URL . 'financeiro/receber.php?msg=deletado');
+    exit;
+}
+
+$categorias_receber = [
+    'venda_carro'  => 'Compra de Carro',
+    'garantia'     => 'Garantia',
+    'consignacao'  => 'Consignação',
+    'multa'        => 'Multa de Trânsito',
+    'financiamento'=> 'Financiamento / Parcela',
+    'outro'        => 'Outro',
+];
+
+$recorrencias = [
+    'nenhuma'    => 'Sem recorrência',
+    'mensal'     => 'Mensal',
+    'bimestral'  => 'Bimestral',
+    'trimestral' => 'Trimestral',
+    'anual'      => 'Anual',
+];
+
+// Gerar próxima recorrência ao marcar como recebida
 if (isset($_GET['marcar'], $_GET['id'])) {
     $cid  = (int)$_GET['id'];
     $acao = sanitizar($_GET['marcar']);
@@ -28,16 +53,34 @@ if (isset($_GET['marcar'], $_GET['id'])) {
         $upd = ['status' => $acao];
         if ($acao === 'recebida') $upd['data_pagamento'] = date('Y-m-d');
         atualizar('contas_receber', $upd, 'id = ?', [$cid]);
+
+        if ($acao === 'recebida') {
+            $cr = obterUmaLinha("SELECT * FROM contas_receber WHERE id = ?", [$cid]);
+            if ($cr && ($cr['recorrencia'] ?? 'nenhuma') !== 'nenhuma') {
+                $intervalos = ['mensal' => '+1 month', 'bimestral' => '+2 months', 'trimestral' => '+3 months', 'anual' => '+1 year'];
+                $intervalo  = $intervalos[$cr['recorrencia']] ?? null;
+                if ($intervalo) {
+                    $prox_venc = date('Y-m-d', strtotime($cr['data_vencimento'] . ' ' . $intervalo));
+                    $ja_existe = obterUmaLinha(
+                        "SELECT id FROM contas_receber WHERE descricao = ? AND data_vencimento = ? AND status = 'pendente'",
+                        [$cr['descricao'], $prox_venc]
+                    );
+                    if (!$ja_existe) {
+                        inserir('contas_receber', [
+                            'descricao'       => $cr['descricao'],
+                            'valor'           => $cr['valor'],
+                            'data_vencimento' => $prox_venc,
+                            'status'          => 'pendente',
+                            'categoria'       => $cr['categoria'] ?? null,
+                            'recorrencia'     => $cr['recorrencia'],
+                            'observacoes'     => $cr['observacoes'],
+                        ]);
+                    }
+                }
+            }
+        }
     }
     header('Location: ' . ADMIN_URL . 'financeiro/receber.php?msg=atualizado');
-    exit;
-}
-
-// DELETE
-if (isset($_GET['deletar'])) {
-    $cid = (int)$_GET['deletar'];
-    if ($cid > 0) executarQuery("DELETE FROM contas_receber WHERE id = ?", [$cid]);
-    header('Location: ' . ADMIN_URL . 'financeiro/receber.php?msg=deletado');
     exit;
 }
 
@@ -49,6 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $valor   = (float)str_replace(['.', ','], ['', '.'], $_POST['valor'] ?? '0');
     $venc    = sanitizar($_POST['data_vencimento'] ?? '');
     $obs     = sanitizar($_POST['observacoes']     ?? '');
+    $cat     = array_key_exists($_POST['categoria'] ?? '', $categorias_receber) ? $_POST['categoria'] : null;
+    $recorr  = array_key_exists($_POST['recorrencia'] ?? '', $recorrencias) ? $_POST['recorrencia'] : 'nenhuma';
 
     if (empty($desc))  $erros[] = 'Descrição é obrigatória.';
     if ($valor <= 0)   $erros[] = 'Valor inválido.';
@@ -60,6 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'valor'           => $valor,
             'data_vencimento' => $venc,
             'status'          => 'pendente',
+            'categoria'       => $cat,
+            'recorrencia'     => $recorr,
             'observacoes'     => $obs ?: null,
         ]);
         $sucesso = 'Conta adicionada.';
@@ -166,6 +213,23 @@ require_once __DIR__ . '/../includes/header.php';
                     <label>Vencimento <span class="obrigatorio">*</span></label>
                     <input type="date" name="data_vencimento" required value="<?= htmlspecialchars($_POST['data_vencimento'] ?? '') ?>">
                 </div>
+                <div class="form-grupo">
+                    <label>Categoria</label>
+                    <select name="categoria">
+                        <option value="">Selecione...</option>
+                        <?php foreach ($categorias_receber as $k => $v): ?>
+                        <option value="<?= $k ?>" <?= ($_POST['categoria'] ?? '') === $k ? 'selected' : '' ?>><?= htmlspecialchars($v) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-grupo">
+                    <label>Recorrência</label>
+                    <select name="recorrencia">
+                        <?php foreach ($recorrencias as $k => $v): ?>
+                        <option value="<?= $k ?>" <?= ($_POST['recorrencia'] ?? 'nenhuma') === $k ? 'selected' : '' ?>><?= htmlspecialchars($v) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
                 <div class="form-grupo form-grupo--2">
                     <label>Observações</label>
                     <input type="text" name="observacoes" value="<?= htmlspecialchars($_POST['observacoes'] ?? '') ?>" placeholder="Ex: Contrato REI-2025-001">
@@ -203,7 +267,7 @@ require_once __DIR__ . '/../includes/header.php';
     <?php if ($contas): ?>
     <table class="table">
         <thead>
-            <tr><th>Vencimento</th><th>Descrição</th><th>Cliente</th><th>Valor</th><th>Status</th><th>Ações</th></tr>
+            <tr><th>Vencimento</th><th>Descrição</th><th>Categoria</th><th>Cliente</th><th>Valor</th><th>Recorr.</th><th>Status</th><th>Ações</th></tr>
         </thead>
         <tbody>
         <?php foreach ($contas as $c): ?>
@@ -220,8 +284,10 @@ require_once __DIR__ . '/../includes/header.php';
             <td class="td-titulo"><?= htmlspecialchars($c['descricao']) ?>
                 <?php if ($c['observacoes']): ?><br><small style="color:var(--admin-text-muted)"><?= htmlspecialchars($c['observacoes']) ?></small><?php endif; ?>
             </td>
+            <td><?= isset($categorias_receber[$c['categoria'] ?? '']) ? htmlspecialchars($categorias_receber[$c['categoria']]) : '—' ?></td>
             <td><?= $c['cliente_nome'] ? htmlspecialchars($c['cliente_nome']) : '—' ?></td>
             <td><?= formatarMoeda($c['valor']) ?></td>
+            <td><?= ($c['recorrencia'] ?? 'nenhuma') !== 'nenhuma' ? '<span style="color:#D4AF37;font-size:0.75rem">🔄</span>' : '—' ?></td>
             <td><span class="badge-admin badge-admin--<?= $badge ?>"><?= $status_conta[$st_real] ?? $st_real ?></span></td>
             <td class="td-acoes">
                 <?php if ($c['status'] === 'pendente'): ?>

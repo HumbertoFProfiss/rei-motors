@@ -16,17 +16,38 @@ $breadcrumb    = [
 // Mês selecionado (padrão: mês atual)
 $mes_sel = trim($_GET['mes'] ?? date('Y-m'));
 
-// Receitas do período: vendas confirmadas/entregues
+// Receitas do período: vendas confirmadas/entregues (com lucro calculado)
 $receitas_vendas = obterTodas(
-    "SELECT data_venda as data, CONCAT('Venda — ', v.marca, ' ', v.modelo) as descricao,
-            (preco_venda - desconto_aplicado) as valor, 'receita' as tipo
+    "SELECT vd.data_venda as data,
+            CONCAT('Venda — ', v.marca, ' ', v.modelo, ' ', v.ano) as descricao,
+            (vd.preco_venda - vd.desconto_aplicado) as valor,
+            'receita' as tipo,
+            v.preco_custo,
+            (vd.preco_venda - vd.desconto_aplicado - v.preco_custo) as lucro_bruto,
+            vd.id as venda_id,
+            v.id as veiculo_id
      FROM vendas vd
      JOIN veiculos v ON v.id = vd.veiculo_id
-     WHERE DATE_FORMAT(data_venda, '%Y-%m') = ?
+     WHERE DATE_FORMAT(vd.data_venda, '%Y-%m') = ?
        AND vd.status IN ('confirmada', 'entregue')
-     ORDER BY data_venda ASC",
+     ORDER BY vd.data_venda ASC",
     [$mes_sel]
 );
+
+// Calcular custos adicionais e garantias por veículo para o lucro líquido
+foreach ($receitas_vendas as &$rv) {
+    $custos_adicionais = (float)(obterUmaLinha(
+        "SELECT COALESCE(SUM(valor),0) t FROM custos_veiculo WHERE veiculo_id = ?",
+        [$rv['veiculo_id']]
+    )['t'] ?? 0);
+    $custos_garantia = (float)(obterUmaLinha(
+        "SELECT COALESCE(SUM(custo_reparo),0) t FROM garantias_chamados WHERE veiculo_id = ?",
+        [$rv['veiculo_id']]
+    )['t'] ?? 0);
+    $rv['lucro_liquido'] = $rv['lucro_bruto'] - $custos_adicionais - $custos_garantia;
+    $rv['custos_adicionais'] = $custos_adicionais + $custos_garantia;
+}
+unset($rv);
 
 // Receitas: contas a receber pagas no período
 $receitas_cr = obterTodas(
@@ -64,9 +85,16 @@ usort($lancamentos, fn($a, $b) => strcmp($a['data'], $b['data']));
 
 $total_receitas = 0;
 $total_despesas = 0;
+$total_lucro_carros = 0;
 foreach ($lancamentos as $l) {
-    if ($l['tipo'] === 'receita') $total_receitas += (float)$l['valor'];
-    else                          $total_despesas += (float)$l['valor'];
+    if ($l['tipo'] === 'receita') {
+        $total_receitas += (float)$l['valor'];
+        if (isset($l['lucro_liquido'])) {
+            $total_lucro_carros += (float)$l['lucro_liquido'];
+        }
+    } else {
+        $total_despesas += (float)$l['valor'];
+    }
 }
 $saldo = $total_receitas - $total_despesas;
 
@@ -108,6 +136,11 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="stat-card__label">Saldo do Mês</div>
         <div class="stat-card__valor"><?= formatarMoeda($saldo) ?></div>
     </div>
+    <div class="stat-card <?= $total_lucro_carros >= 0 ? 'stat-card--gold' : 'stat-card--red' ?>">
+        <div class="stat-card__label">Lucro Líquido Carros</div>
+        <div class="stat-card__valor"><?= formatarMoeda($total_lucro_carros) ?></div>
+        <div class="stat-card__sub">venda – custo – despesas – garantias</div>
+    </div>
 </div>
 
 <div class="table-container">
@@ -116,7 +149,7 @@ require_once __DIR__ . '/../includes/header.php';
     <?php if ($lancamentos): ?>
     <table class="table">
         <thead>
-            <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor</th></tr>
+            <tr><th>Data</th><th>Descrição</th><th>Tipo</th><th>Valor Bruto</th><th>Lucro Líquido</th></tr>
         </thead>
         <tbody>
         <?php
@@ -136,14 +169,30 @@ require_once __DIR__ . '/../includes/header.php';
             <td style="color:<?= $l['tipo'] === 'receita' ? '#4CAF50' : '#f44336' ?>">
                 <?= $l['tipo'] === 'receita' ? '+' : '-' ?><?= formatarMoeda($l['valor']) ?>
             </td>
+            <td>
+            <?php if ($l['tipo'] === 'receita' && isset($l['lucro_liquido'])): ?>
+                <?php $ll = (float)$l['lucro_liquido']; ?>
+                <span style="color:<?= $ll >= 0 ? '#D4AF37' : '#f44336' ?>;font-weight:600">
+                    <?= formatarMoeda($ll) ?>
+                </span>
+                <?php if (($l['custos_adicionais'] ?? 0) > 0): ?>
+                <br><small style="color:#555;font-size:0.7rem">-<?= formatarMoeda($l['custos_adicionais']) ?> custos</small>
+                <?php endif; ?>
+            <?php else: ?>
+                <span style="color:#333">—</span>
+            <?php endif; ?>
+            </td>
         </tr>
         <?php endforeach; ?>
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3" style="text-align:right;font-weight:700;padding:0.75rem 1rem">Saldo Final:</td>
+                <td colspan="3" style="text-align:right;font-weight:700;padding:0.75rem 1rem">Saldo Final do Mês:</td>
                 <td style="font-weight:700;color:<?= $saldo >= 0 ? '#4CAF50' : '#f44336' ?>;padding:0.75rem 0.5rem">
                     <?= formatarMoeda($saldo) ?>
+                </td>
+                <td style="font-weight:700;color:<?= $total_lucro_carros >= 0 ? '#D4AF37' : '#f44336' ?>;padding:0.75rem 0.5rem">
+                    <?= formatarMoeda($total_lucro_carros) ?>
                 </td>
             </tr>
         </tfoot>

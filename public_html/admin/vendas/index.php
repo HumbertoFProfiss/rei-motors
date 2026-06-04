@@ -179,19 +179,19 @@ require_once __DIR__ . '/../includes/header.php';
             <td><?= formatarMoeda($v['comissao_vendedor']) ?></td>
             <td>
                 <?php
-                $prazo = (int)($v['prazo_garantia_meses'] ?? 0);
-                if ($prazo > 0 && !empty($v['data_entrega'])) {
-                    $fim = strtotime($v['data_entrega'] . ' +' . $prazo . ' months');
-                    $dias = (int)ceil(($fim - time()) / 86400);
-                    if ($dias > 30) {
-                        echo '<span class="badge-admin badge-admin--green">✓ ' . $dias . 'd</span>';
-                    } elseif ($dias > 0) {
-                        echo '<span class="badge-admin badge-admin--gold">⚠ ' . $dias . 'd</span>';
+                $prazo_d = (int)($v['prazo_garantia_dias'] ?? 0);
+                if ($prazo_d > 0 && !empty($v['data_entrega'])) {
+                    $fim  = strtotime($v['data_entrega']) + $prazo_d * 86400;
+                    $rest = (int)ceil(($fim - time()) / 86400);
+                    if ($rest > 30) {
+                        echo '<span class="badge-admin badge-admin--green">✓ ' . $rest . 'd</span>';
+                    } elseif ($rest > 0) {
+                        echo '<span class="badge-admin badge-admin--gold">⚠ ' . $rest . 'd</span>';
                     } else {
                         echo '<span class="badge-admin badge-admin--cancelada">Expirada</span>';
                     }
-                } elseif ($prazo > 0) {
-                    echo '<small style="color:#555">' . $prazo . 'm</small>';
+                } elseif ($prazo_d > 0) {
+                    echo '<small style="color:#555">' . $prazo_d . 'd</small>';
                 } else {
                     echo '<small style="color:#333">—</small>';
                 }
@@ -209,6 +209,12 @@ require_once __DIR__ . '/../includes/header.php';
                     <option value="cancelada">Cancelada</option>
                 </select>
                 <?php endif; ?>
+                <div style="margin-top:4px;display:flex;flex-direction:column;gap:2px">
+                    <a href="../contratos/gerar.php?tipo=compra_venda&venda_id=<?= $v['id'] ?>" target="_blank"
+                       class="btn-admin btn-admin--secondary btn-admin--sm" style="font-size:0.65rem">📄 C&V</a>
+                    <a href="../contratos/gerar.php?tipo=procuracao&venda_id=<?= $v['id'] ?>" target="_blank"
+                       class="btn-admin btn-admin--secondary btn-admin--sm" style="font-size:0.65rem">📋 Proc.</a>
+                </div>
             </td>
         </tr>
         <?php if (!empty($v['observacoes'])): ?>
