@@ -342,14 +342,55 @@ require_once __DIR__ . '/../includes/header.php';
 
     if (!btnBuscar) return;
 
+    function norm(s) {
+        return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+    }
+    function lev(a, b) {
+        var m = a.length, n = b.length, i, j;
+        if (!m) return n; if (!n) return m;
+        var dp = [];
+        for (i = 0; i <= m; i++) { dp[i] = [i]; }
+        for (j = 0; j <= n; j++) { dp[0][j] = j; }
+        for (i = 1; i <= m; i++)
+            for (j = 1; j <= n; j++)
+                dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+        return dp[m][n];
+    }
     function melhorMatch(lista, texto, chave) {
-        var t = (texto || '').toLowerCase().trim();
+        var t = norm(texto);
         if (!t) return null;
-        return lista.find(function(i){ return i[chave].toLowerCase() === t; })
-            || lista.find(function(i){ return i[chave].toLowerCase().startsWith(t) || t.startsWith(i[chave].toLowerCase()); })
-            || lista.find(function(i){
-                return t.split(/\s+/).some(function(p){ return p.length > 2 && i[chave].toLowerCase().includes(p); });
-            }) || null;
+        // 1. exato normalizado
+        var r = lista.find(function(i){ return norm(i[chave]) === t; });
+        if (r) return r;
+        // 2. começa com / está contido
+        r = lista.find(function(i){ var n = norm(i[chave]); return n.startsWith(t) || t.startsWith(n); });
+        if (r) return r;
+        // 3. contém
+        r = lista.find(function(i){ var n = norm(i[chave]); return n.includes(t) || t.includes(n); });
+        if (r) return r;
+        // 4. partes de palavras (ex: "golf gti" acha "Golf 1.4 TSI GTI")
+        var partes = t.split(/\s+/).filter(function(p){ return p.length > 2; });
+        if (partes.length) {
+            r = lista.find(function(i){
+                var n = norm(i[chave]);
+                return partes.every(function(p){ return n.includes(p); });
+            }) || lista.find(function(i){
+                var n = norm(i[chave]);
+                return partes.some(function(p){ return n.includes(p); });
+            });
+            if (r) return r;
+        }
+        // 5. Levenshtein — tolerância ~35% do comprimento, mínimo 2 erros
+        var maxDist = Math.max(2, Math.floor(t.length * 0.35));
+        var melhor = null, menorDist = Infinity;
+        lista.forEach(function(i) {
+            var candidatos = [norm(i[chave])].concat(norm(i[chave]).split(/\s+/));
+            candidatos.forEach(function(c) {
+                var d = lev(t, c);
+                if (d < menorDist) { menorDist = d; melhor = i; }
+            });
+        });
+        return (melhor && menorDist <= maxDist) ? melhor : null;
     }
 
     btnBuscar.addEventListener('click', function () {
