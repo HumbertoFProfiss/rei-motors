@@ -238,26 +238,15 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <div class="form-grupo form-grupo--2" id="bloco-fipe">
                     <label>Tabela FIPE</label>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
-                        <select id="fipe_marca" style="flex:1;min-width:140px">
-                            <option value="">Marca FIPE...</option>
-                        </select>
-                        <select id="fipe_modelo" style="flex:1;min-width:140px" disabled>
-                            <option value="">Modelo FIPE...</option>
-                        </select>
-                        <select id="fipe_ano" style="flex:1;min-width:120px" disabled>
-                            <option value="">Ano...</option>
-                        </select>
-                        <button type="button" id="btn_buscar_fipe" class="btn-admin btn-admin--secondary" disabled
-                                style="white-space:nowrap">Buscar FIPE</button>
-                    </div>
-                    <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+                    <div style="display:flex;gap:8px;align-items:center">
                         <input type="text" name="preco_tabela_fipe" id="preco_tabela_fipe"
                                value="<?= $d['preco_tabela_fipe'] ? number_format((float)$d['preco_tabela_fipe'], 2, ',', '.') : '' ?>"
                                placeholder="Valor FIPE (R$)" style="flex:1">
-                        <span id="fipe_referencia" style="font-size:0.72rem;color:#555"></span>
+                        <button type="button" id="btn_buscar_fipe" class="btn-admin btn-admin--secondary"
+                                style="white-space:nowrap">🔍 Buscar FIPE</button>
                     </div>
-                    <span class="form-grupo__hint">Selecione marca/modelo/ano para buscar automaticamente ou digite manualmente</span>
+                    <span id="fipe_referencia" style="font-size:0.72rem;display:block;margin-top:4px"></span>
+                    <span class="form-grupo__hint">Preencha marca, modelo e ano acima e clique em "Buscar FIPE"</span>
                 </div>
 
                 <div class="form-grupo" id="campo-valor-minimo" style="display:none">
@@ -349,68 +338,89 @@ require_once __DIR__ . '/../includes/header.php';
 <script>
 // ===== FIPE =====
 (function () {
-    var selMarca  = document.getElementById('fipe_marca');
-    var selModelo = document.getElementById('fipe_modelo');
-    var selAno    = document.getElementById('fipe_ano');
-    var btnBuscar = document.getElementById('btn_buscar_fipe');
-    var inputFipe = document.getElementById('preco_tabela_fipe');
-    var spanRef   = document.getElementById('fipe_referencia');
-    var apiBase   = '../../api/fipe.php';
+    var btnBuscar   = document.getElementById('btn_buscar_fipe');
+    var inputFipe   = document.getElementById('preco_tabela_fipe');
+    var spanRef     = document.getElementById('fipe_referencia');
+    var inputMarca  = document.querySelector('input[name="marca"]');
+    var inputModelo = document.querySelector('input[name="modelo"]');
+    var inputAno    = document.querySelector('input[name="ano"]');
+    var apiBase     = '../../api/fipe.php';
 
-    function popularSelect(sel, dados, valorKey, textoKey, placeholder) {
-        sel.innerHTML = '<option value="">' + placeholder + '</option>';
-        dados.forEach(function (d) { sel.innerHTML += '<option value="' + d[valorKey] + '">' + d[textoKey] + '</option>'; });
-        sel.disabled = false;
+    if (!btnBuscar) return;
+
+    function melhorMatch(lista, texto, chave) {
+        var t = (texto || '').toLowerCase().trim();
+        if (!t) return null;
+        return lista.find(function(i){ return i[chave].toLowerCase() === t; })
+            || lista.find(function(i){ return i[chave].toLowerCase().startsWith(t) || t.startsWith(i[chave].toLowerCase()); })
+            || lista.find(function(i){
+                return t.split(/\s+/).some(function(p){ return p.length > 2 && i[chave].toLowerCase().includes(p); });
+            }) || null;
     }
 
-    fetch(apiBase + '?acao=marcas')
-        .then(function(r){ return r.json(); })
-        .then(function(d){ popularSelect(selMarca, d, 'codigo', 'nome', 'Marca FIPE...'); })
-        .catch(function(){});
-
-    selMarca.addEventListener('change', function () {
-        selModelo.innerHTML = '<option value="">Carregando...</option>';
-        selModelo.disabled = true;
-        selAno.innerHTML = '<option value="">Ano...</option>';
-        selAno.disabled = true;
-        btnBuscar.disabled = true;
-        if (!this.value) return;
-        fetch(apiBase + '?acao=modelos&marca_codigo=' + this.value)
-            .then(function(r){ return r.json(); })
-            .then(function(d){ popularSelect(selModelo, d.modelos || d, 'codigo', 'nome', 'Modelo FIPE...'); })
-            .catch(function(){ selModelo.innerHTML = '<option value="">Erro ao carregar</option>'; });
-    });
-
-    selModelo.addEventListener('change', function () {
-        selAno.innerHTML = '<option value="">Carregando...</option>';
-        selAno.disabled = true;
-        btnBuscar.disabled = true;
-        if (!this.value) return;
-        fetch(apiBase + '?acao=anos&marca_codigo=' + selMarca.value + '&modelo_codigo=' + this.value)
-            .then(function(r){ return r.json(); })
-            .then(function(d){ popularSelect(selAno, d, 'codigo', 'nome', 'Ano...'); })
-            .catch(function(){ selAno.innerHTML = '<option value="">Erro ao carregar</option>'; });
-    });
-
-    selAno.addEventListener('change', function () {
-        btnBuscar.disabled = !this.value;
-    });
-
     btnBuscar.addEventListener('click', function () {
-        btnBuscar.textContent = '...';
+        var marca  = inputMarca  ? inputMarca.value.trim()  : '';
+        var modelo = inputModelo ? inputModelo.value.trim() : '';
+        var ano    = parseInt(inputAno ? inputAno.value : '0');
+
+        if (!marca || !modelo || !ano) {
+            spanRef.style.color = '#ef4444';
+            spanRef.textContent = '⚠ Preencha marca, modelo e ano antes de buscar.';
+            return;
+        }
+
+        btnBuscar.textContent = '⏳ Buscando...';
         btnBuscar.disabled = true;
-        fetch(apiBase + '?acao=preco&marca_codigo=' + selMarca.value + '&modelo_codigo=' + selModelo.value + '&ano_codigo=' + selAno.value)
+        spanRef.style.color = '#888';
+        spanRef.textContent = 'Procurando marca...';
+
+        fetch(apiBase + '?acao=marcas')
+        .then(function(r){ return r.json(); })
+        .then(function(marcas) {
+            if (!Array.isArray(marcas)) throw new Error('Erro ao conectar à API FIPE');
+            var marcaObj = melhorMatch(marcas, marca, 'nome');
+            if (!marcaObj) throw new Error('Marca "' + marca + '" não encontrada na FIPE');
+            spanRef.textContent = '✓ ' + marcaObj.nome + ' — procurando modelo...';
+
+            return fetch(apiBase + '?acao=modelos&marca_codigo=' + marcaObj.codigo)
             .then(function(r){ return r.json(); })
-            .then(function(d) {
-                if (d.Valor) {
-                    var v = d.Valor.replace('R$ ', '').replace(/\./g, '').replace(',', '.');
-                    inputFipe.value = parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-                    spanRef.textContent = 'Ref: ' + (d.MesReferencia || '');
-                }
-                btnBuscar.textContent = 'Buscar FIPE';
-                btnBuscar.disabled = false;
-            })
-            .catch(function(){ btnBuscar.textContent = 'Erro'; btnBuscar.disabled = false; });
+            .then(function(data) {
+                var modelos = data.modelos || data;
+                if (!Array.isArray(modelos)) throw new Error('Erro ao buscar modelos');
+                var modeloObj = melhorMatch(modelos, modelo, 'nome');
+                if (!modeloObj) throw new Error('Modelo "' + modelo + '" não encontrado para ' + marcaObj.nome);
+                spanRef.textContent = '✓ ' + marcaObj.nome + ' ' + modeloObj.nome + ' — procurando ano...';
+
+                return fetch(apiBase + '?acao=anos&marca_codigo=' + marcaObj.codigo + '&modelo_codigo=' + modeloObj.codigo)
+                .then(function(r){ return r.json(); })
+                .then(function(anos) {
+                    if (!Array.isArray(anos)) throw new Error('Erro ao buscar anos');
+                    var anoObj = anos.find(function(a){ return a.nome.startsWith(String(ano)); })
+                              || anos.find(function(a){ return a.nome.startsWith(String(ano - 1)); })
+                              || anos[0];
+                    if (!anoObj) throw new Error('Ano ' + ano + ' não encontrado na FIPE');
+
+                    return fetch(apiBase + '?acao=preco&marca_codigo=' + marcaObj.codigo + '&modelo_codigo=' + modeloObj.codigo + '&ano_codigo=' + encodeURIComponent(anoObj.codigo))
+                    .then(function(r){ return r.json(); })
+                    .then(function(preco) {
+                        if (preco.erro) throw new Error(preco.erro);
+                        if (!preco.Valor) throw new Error('Preço não retornado');
+                        var v = preco.Valor.replace(/R\$\s?/, '').replace(/\./g, '').replace(',', '.');
+                        inputFipe.value = parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+                        spanRef.style.color = '#22c55e';
+                        spanRef.textContent = '✓ ' + marcaObj.nome + ' ' + modeloObj.nome + ' ' + anoObj.nome + ' — Ref: ' + (preco.MesReferencia || '');
+                    });
+                });
+            });
+        })
+        .catch(function(err) {
+            spanRef.style.color = '#ef4444';
+            spanRef.textContent = '✗ ' + (err.message || 'Erro ao buscar FIPE');
+        })
+        .then(function() {
+            btnBuscar.textContent = '🔍 Buscar FIPE';
+            btnBuscar.disabled = false;
+        });
     });
 })();
 // ===== CONSIGNADO =====
