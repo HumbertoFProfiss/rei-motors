@@ -48,9 +48,9 @@ $_nome_c    = $_cliente_logado['nome'];
            class="sidebar__link <?= $pagina_ativa === 'compras' ? 'ativo' : '' ?>">
             <span class="sidebar__link-icone">🚗</span> Minhas Compras
         </a>
-        <a href="<?= CLIENTE_URL ?>garantias.php"
-           class="sidebar__link <?= $pagina_ativa === 'garantias' ? 'ativo' : '' ?>">
-            <span class="sidebar__link-icone">🛡️</span> Garantias
+        <a href="<?= CLIENTE_URL ?>favoritos.php"
+           class="sidebar__link <?= $pagina_ativa === 'favoritos' ? 'ativo' : '' ?>">
+            <span class="sidebar__link-icone">❤️</span> Favoritos
         </a>
         <a href="<?= CLIENTE_URL ?>perfil.php"
            class="sidebar__link <?= $pagina_ativa === 'perfil' ? 'ativo' : '' ?>">

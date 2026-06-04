@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
 
         const valorCarro = parseFloat(document.getElementById('valor').value);
-        const percentualEntrada = parseFloat(document.getElementById('entrada').value);
+        const valorEntrada = parseFloat(document.getElementById('entrada').value) || 0;
         const prazo = parseInt(document.getElementById('prazo').value);
 
         if (!valorCarro || valorCarro <= 0) {
@@ -52,7 +52,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const valorEntrada = valorCarro * (percentualEntrada / 100);
         const valorFinanciado = valorCarro - valorEntrada;
         const valorParcela = calcularParcela(valorFinanciado, prazo);
 

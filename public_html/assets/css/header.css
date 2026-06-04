@@ -84,9 +84,9 @@
 }
 
 .logo {
-    height: 38px;
+    height: 52px;
     width: auto;
-    max-width: 150px;
+    max-width: 180px;
     object-fit: contain;
     mix-blend-mode: screen;
 }
@@ -276,7 +276,7 @@
     }
 
     .logo {
-        height: 30px;
+        height: 40px;
         width: auto;
     }
 

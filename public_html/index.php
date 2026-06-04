@@ -162,19 +162,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_venda'])) {
 
     <!-- ===== HERO SECTION ===== -->
     <section class="hero" id="home">
-        <div class="hero__background" <?php if ($hero_foto): ?>style="background-image: url('<?php echo htmlspecialchars($hero_foto); ?>')"<?php endif; ?>>
+        <div class="hero__background">
+            <?php
+            $hero_slides = [];
+            foreach ($destaques as $d_s) {
+                if (!empty($d_s['fotos'])) {
+                    $hero_slides[] = UPLOAD_DIR . explode(',', $d_s['fotos'])[0];
+                }
+            }
+            if (empty($hero_slides) && $hero_foto) {
+                $hero_slides[] = $hero_foto;
+            }
+            foreach ($hero_slides as $i => $slide): ?>
+            <div class="hero__slide <?= $i === 0 ? 'ativo' : '' ?>"
+                 style="background-image: url('<?= htmlspecialchars($slide) ?>')"></div>
+            <?php endforeach; ?>
             <div class="hero__overlay"></div>
         </div>
-        
+
         <div class="hero__content">
             <div class="container">
                 <div class="hero__text">
                     <h1 class="hero__title">Seu novo carro está aqui!</h1>
-                    <p class="hero__subtitle">A melhor experiência em compra de seminovos em Botucatu e região — qualidade garantida, atendimento REAL.</p>
-                    
+                    <p class="hero__subtitle">A melhor experiência em compra de veículos 0km e seminovos do Brasil — qualidade, garantia e atendimento REAL.</p>
+
                     <div class="hero__ctas">
                         <a href="<?php echo BASE_URL; ?>estoque.php" class="btn btn--large btn--primary">
-                            Ver Estoque (<?php echo $total_estoque['total'] ?? 0; ?> carros)
+                            Ver Estoque Completo
                         </a>
                         <a href="#financiamento" class="btn btn--large btn--secondary">
                             Simular Financiamento
@@ -364,8 +378,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_venda'])) {
                 </div>
 
                 <div class="form__group">
-                    <label for="entrada">Entrada (%)</label>
-                    <input type="number" id="entrada" name="entrada" min="0" max="100" value="20" required>
+                    <label for="entrada">Entrada (R$)</label>
+                    <input type="number" id="entrada" name="entrada" min="0" placeholder="Ex: 10000" required>
                 </div>
 
                 <div class="form__group">
@@ -501,6 +515,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_venda'])) {
         <div class="container">
             <h2 class="section__title">Onde Estamos</h2>
             <p class="section__subtitle"><?php echo htmlspecialchars(LOJA_ENDERECO); ?></p>
+
+            <?php
+            $foto_fachada = null;
+            foreach (['fachada.jpg','fachada.jpeg','fachada.png','fachada.webp'] as $_f) {
+                if (file_exists(UPLOAD_PATH . $_f)) { $foto_fachada = UPLOAD_DIR . $_f; break; }
+            }
+            if ($foto_fachada): ?>
+            <div style="margin-bottom:2rem;border-radius:12px;overflow:hidden;max-height:320px">
+                <img src="<?= htmlspecialchars($foto_fachada) ?>" alt="Fachada Rei Motors"
+                     style="width:100%;height:320px;object-fit:cover;display:block">
+            </div>
+            <?php endif; ?>
 
             <div class="localizacao__grid">
                 <div class="localizacao__mapa">

@@ -101,7 +101,6 @@ $qtd_chamados = (int)($chamados_abertos['total'] ?? 0);
                     <span>Entregue em <?= formatarData($ultima_compra['data_entrega']) ?></span>
                     <?php endif; ?>
                 </div>
-                <div class="veiculo-card__preco"><?= formatarMoeda($ultima_compra['preco_venda']) ?></div>
                 <div class="veiculo-card__info">
                     <?php
                     $status_labels = ['pendente'=>'Pendente','confirmada'=>'Confirmada','entregue'=>'Entregue','cancelada'=>'Cancelada'];

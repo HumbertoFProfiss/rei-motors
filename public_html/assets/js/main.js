@@ -62,6 +62,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ===== HERO CAROUSEL =====
+    var slides = document.querySelectorAll('.hero__slide');
+    if (slides.length > 1) {
+        var atual = 0;
+        setInterval(function () {
+            slides[atual].classList.remove('ativo');
+            atual = (atual + 1) % slides.length;
+            slides[atual].classList.add('ativo');
+        }, 5000);
+    }
+
     // ===== FEEDBACK VISUAL em links WhatsApp =====
     document.querySelectorAll('a[href*="wa.me"]').forEach(function (link) {
         link.addEventListener('click', function () {

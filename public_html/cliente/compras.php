@@ -64,8 +64,6 @@ $cambios_l        = ['manual'=>'Manual','automatico'=>'Automático','cvt'=>'CVT'
                 <span><?= $cambios_l[$c['cambio']] ?? $c['cambio'] ?></span>
             </div>
 
-            <div class="veiculo-card__preco"><?= formatarMoeda($c['preco_venda']) ?></div>
-
             <div class="veiculo-card__info" style="margin-bottom:10px">
                 <span class="badge badge--<?= $status_badge[$s] ?? 'gray' ?>">
                     <?= $status_labels[$s] ?? ucfirst($s) ?>
