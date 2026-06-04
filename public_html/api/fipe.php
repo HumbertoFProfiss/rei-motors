@@ -32,16 +32,27 @@ if (!$url) {
     exit;
 }
 
-$ctx = stream_context_create(['http' => [
-    'timeout' => 8,
-    'header'  => "User-Agent: ReiMotors/1.0\r\n",
-]]);
+$resp = false;
 
-$resp = @file_get_contents($url, false, $ctx);
+if (function_exists('curl_init')) {
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_USERAGENT      => 'ReiMotors/1.0',
+        CURLOPT_SSL_VERIFYPEER => false,
+    ]);
+    $resp = curl_exec($ch);
+    if (curl_errno($ch)) { $resp = false; }
+    curl_close($ch);
+} else {
+    $ctx  = stream_context_create(['http' => ['timeout' => 8, 'header' => "User-Agent: ReiMotors/1.0\r\n"]]);
+    $resp = @file_get_contents($url, false, $ctx);
+}
 
 if ($resp === false) {
     http_response_code(502);
-    echo json_encode(['erro' => 'Não foi possível conectar à API FIPE. Tente novamente.']);
+    echo json_encode(['erro' => 'Não foi possível conectar à API FIPE. Verifique sua conexão e tente novamente.']);
     exit;
 }
 

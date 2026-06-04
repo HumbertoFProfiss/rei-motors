@@ -30,7 +30,18 @@ $custo_mes = (float)(obterUmaLinha(
      WHERE MONTH(vd.data_venda)=MONTH(CURDATE()) AND YEAR(vd.data_venda)=YEAR(CURDATE())
        AND vd.status IN ('confirmada','entregue')"
 )['c'] ?? 0);
-$lucro_mes = (float)$row_vendas['v'] - $custo_mes;
+
+// Despesas adicionais (custos_veiculo) dos carros vendidos no mês
+$custos_adicionais_mes = (float)(obterUmaLinha(
+    "SELECT COALESCE(SUM(cv.valor),0) c
+     FROM custos_veiculo cv
+     JOIN vendas vd ON vd.veiculo_id = cv.veiculo_id
+     WHERE MONTH(vd.data_venda)=MONTH(CURDATE()) AND YEAR(vd.data_venda)=YEAR(CURDATE())
+       AND vd.status IN ('confirmada','entregue')"
+)['c'] ?? 0);
+
+$lucro_mes   = (float)$row_vendas['v'] - $custo_mes;
+$lucro_liq   = $lucro_mes - $custos_adicionais_mes;
 
 // ===== FATURAMENTO 12 MESES =====
 $fat_12m = obterTodas(
@@ -40,6 +51,18 @@ $fat_12m = obterTodas(
      WHERE data_venda >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH)
        AND status IN ('confirmada','entregue')
      GROUP BY DATE_FORMAT(data_venda,'%Y-%m')
+     ORDER BY mes ASC"
+);
+
+// ===== CUSTOS PÓS-VENDA 12 MESES =====
+$custos_12m = obterTodas(
+    "SELECT DATE_FORMAT(vd.data_venda,'%Y-%m') as mes,
+            COALESCE(SUM(cv.valor),0) as total
+     FROM custos_veiculo cv
+     JOIN vendas vd ON vd.veiculo_id = cv.veiculo_id
+     WHERE vd.data_venda >= DATE_SUB(CURDATE(), INTERVAL 11 MONTH)
+       AND vd.status IN ('confirmada','entregue')
+     GROUP BY DATE_FORMAT(vd.data_venda,'%Y-%m')
      ORDER BY mes ASC"
 );
 
@@ -95,22 +118,34 @@ $ultimos_veiculos = obterTodas(
         <p class="stat-card__sub">aguardando contato</p>
     </div>
     <div class="stat-card stat-card--green">
-        <span class="stat-card__icone">💰</span>
+        <span class="stat-card__icone">🏷️</span>
         <p class="stat-card__label">Vendas no Mês</p>
         <p class="stat-card__valor"><?= $row_vendas['c'] ?></p>
-        <p class="stat-card__sub"><?= formatarMoeda($row_vendas['v']) ?></p>
+        <p class="stat-card__sub">negócios fechados</p>
+    </div>
+    <div class="stat-card stat-card--gold">
+        <span class="stat-card__icone">💰</span>
+        <p class="stat-card__label">Faturamento Bruto</p>
+        <p class="stat-card__valor" style="font-size:1.35rem"><?= formatarMoeda($row_vendas['v']) ?></p>
+        <p class="stat-card__sub">total de vendas do mês</p>
+    </div>
+    <div class="stat-card <?= $lucro_liq >= 0 ? 'stat-card--green' : 'stat-card--red' ?>">
+        <span class="stat-card__icone">📈</span>
+        <p class="stat-card__label">Lucro Líquido</p>
+        <p class="stat-card__valor" style="font-size:1.35rem"><?= formatarMoeda($lucro_liq) ?></p>
+        <p class="stat-card__sub">após custos e despesas</p>
+    </div>
+    <div class="stat-card stat-card--orange">
+        <span class="stat-card__icone">🔧</span>
+        <p class="stat-card__label">Custos Pós-Venda</p>
+        <p class="stat-card__valor" style="font-size:1.35rem"><?= formatarMoeda($custos_adicionais_mes) ?></p>
+        <p class="stat-card__sub">despesas em carros vendidos</p>
     </div>
     <div class="stat-card stat-card--purple">
         <span class="stat-card__icone">👥</span>
         <p class="stat-card__label">Clientes</p>
         <p class="stat-card__valor"><?= $total_clientes ?></p>
         <p class="stat-card__sub">cadastrados</p>
-    </div>
-    <div class="stat-card <?= $lucro_mes >= 0 ? 'stat-card--green' : 'stat-card--red' ?>">
-        <span class="stat-card__icone">📈</span>
-        <p class="stat-card__label">Lucro Estimado</p>
-        <p class="stat-card__valor" style="font-size:1.1rem"><?= formatarMoeda($lucro_mes) ?></p>
-        <p class="stat-card__sub">mês atual</p>
     </div>
 </div>
 
@@ -224,17 +259,20 @@ $ultimos_veiculos = obterTodas(
 <script>
 (function () {
     var raw = <?php
-        $labels = [];
-        $valores = [];
-        // build all 12 month labels and fill from query
-        $map = [];
-        foreach ($fat_12m as $r) { $map[$r['mes']] = (float)$r['total']; }
+        $labels   = [];
+        $valores  = [];
+        $custos_v = [];
+        $map_fat  = [];
+        $map_cus  = [];
+        foreach ($fat_12m  as $r) { $map_fat[$r['mes']]  = (float)$r['total']; }
+        foreach ($custos_12m as $r) { $map_cus[$r['mes']] = (float)$r['total']; }
         for ($i = 11; $i >= 0; $i--) {
             $d = date('Y-m', strtotime("-$i months"));
-            $labels[] = date('M/y', strtotime($d . '-01'));
-            $valores[] = $map[$d] ?? 0;
+            $labels[]   = date('M/y', strtotime($d . '-01'));
+            $valores[]  = $map_fat[$d]  ?? 0;
+            $custos_v[] = $map_cus[$d]  ?? 0;
         }
-        echo json_encode(['labels' => $labels, 'valores' => $valores]);
+        echo json_encode(['labels' => $labels, 'valores' => $valores, 'custos' => $custos_v]);
     ?>;
 
     var ctx = document.getElementById('chartFat12m');
@@ -244,23 +282,39 @@ $ultimos_veiculos = obterTodas(
         type: 'bar',
         data: {
             labels: raw.labels,
-            datasets: [{
-                label: 'Faturamento',
-                data: raw.valores,
-                backgroundColor: 'rgba(212,175,55,0.65)',
-                borderColor: '#D4AF37',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
+            datasets: [
+                {
+                    label: 'Faturamento Bruto',
+                    data: raw.valores,
+                    backgroundColor: 'rgba(212,175,55,0.65)',
+                    borderColor: '#D4AF37',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    order: 2
+                },
+                {
+                    label: 'Custos Pós-Venda',
+                    data: raw.custos,
+                    type: 'line',
+                    borderColor: '#f97316',
+                    backgroundColor: 'rgba(249,115,22,0.15)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#f97316',
+                    pointRadius: 4,
+                    tension: 0.3,
+                    fill: true,
+                    order: 1
+                }
+            ]
         },
         options: {
             responsive: true,
             plugins: {
-                legend: { display: false },
+                legend: { display: true, labels: { color: '#999', boxWidth: 14, font: { size: 12 } } },
                 tooltip: {
                     callbacks: {
                         label: function (c) {
-                            return 'R$ ' + c.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits:2});
+                            return c.dataset.label + ': R$ ' + c.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits:2});
                         }
                     }
                 }

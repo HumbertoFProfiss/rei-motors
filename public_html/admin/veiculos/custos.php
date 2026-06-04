@@ -79,11 +79,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Filtro por categoria
+$filtro_cat = sanitizar($_GET['cat'] ?? '');
+$where_cat  = ($filtro_cat && isset($categorias_despesas[$filtro_cat])) ? ' AND categoria = ?' : '';
+$params_cat = $where_cat ? [$id, $filtro_cat] : [$id];
+
 // Listar custos
 $custos = obterTodas(
-    "SELECT * FROM custos_veiculo WHERE veiculo_id = ? ORDER BY data_despesa DESC",
-    [$id]
+    "SELECT * FROM custos_veiculo WHERE veiculo_id = ?" . $where_cat . " ORDER BY data_despesa DESC",
+    $params_cat
 );
+
+// Total geral (sem filtro) para percentuais
+$total_geral_custos = (float)(obterUmaLinha(
+    "SELECT COALESCE(SUM(valor),0) t FROM custos_veiculo WHERE veiculo_id = ?",
+    [$id]
+)['t'] ?? 0);
 
 // Totais para cálculo de lucro
 $total_custos_adicionais = array_sum(array_column($custos, 'valor'));
@@ -190,8 +201,20 @@ require_once __DIR__ . '/../includes/header.php';
 
 <!-- LISTA DE CUSTOS -->
 <div class="table-container">
-    <div class="table-header">
-        <h2 class="table-header__titulo">Despesas Cadastradas (<?= count($custos) ?>)</h2>
+    <div class="table-header" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <h2 class="table-header__titulo" style="flex:1">Despesas Cadastradas (<?= count($custos) ?>)</h2>
+        <form method="GET" action="" style="display:flex;gap:8px;align-items:center">
+            <input type="hidden" name="id" value="<?= $id ?>">
+            <select name="cat" onchange="this.form.submit()" style="font-size:0.82rem;padding:5px 8px;background:#1A1A1A;border:1px solid #2A2A2A;color:#CCC;border-radius:6px">
+                <option value="">Todas as categorias</option>
+                <?php foreach ($categorias_despesas as $k => $v): ?>
+                <option value="<?= $k ?>" <?= $filtro_cat === $k ? 'selected' : '' ?>><?= htmlspecialchars($v) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <?php if ($filtro_cat): ?>
+            <a href="?id=<?= $id ?>" style="font-size:0.8rem;color:#D4AF37">✕ Limpar</a>
+            <?php endif; ?>
+        </form>
     </div>
 
     <?php if ($custos): ?>
@@ -203,6 +226,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <th>Descrição</th>
                 <th>NF</th>
                 <th>Valor</th>
+                <th>% do Total</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -222,6 +246,9 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
             </td>
             <td class="td-titulo"><?= formatarMoeda($c['valor']) ?></td>
+            <td style="color:#888;font-size:0.82rem">
+                <?= $total_geral_custos > 0 ? number_format(($c['valor'] / $total_geral_custos) * 100, 1) . '%' : '—' ?>
+            </td>
             <td class="td-acoes">
                 <?php if (ehAdmin()): ?>
                 <button onclick="confirmarAcao('?deletar=<?= $c['id'] ?>&id=<?= $id ?>', 'Remover despesa', 'Deseja remover esta despesa? Esta ação não pode ser desfeita.')"
@@ -233,8 +260,13 @@ require_once __DIR__ . '/../includes/header.php';
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="4" style="text-align:right;font-weight:600;padding:0.75rem 1rem">Total de Despesas:</td>
+                <td colspan="4" style="text-align:right;font-weight:600;padding:0.75rem 1rem">Total Filtrado:</td>
                 <td class="td-titulo" style="color:#D4AF37"><?= formatarMoeda($total_custos_adicionais) ?></td>
+                <td style="color:#888;font-size:0.82rem">
+                    <?= $total_geral_custos > 0 && $total_geral_custos !== $total_custos_adicionais
+                        ? number_format(($total_custos_adicionais / $total_geral_custos) * 100, 1) . '% do geral'
+                        : '' ?>
+                </td>
                 <td></td>
             </tr>
         </tfoot>

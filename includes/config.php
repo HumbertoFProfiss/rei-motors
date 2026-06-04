@@ -72,10 +72,13 @@ $redes_sociais = [
 
 // ===== FORMAS DE PAGAMENTO =====
 $formas_pagamento = [
-    'avista' => 'À Vista',
-    'financiado' => 'Financiado',
-    'consorcio' => 'Consórcio',
-    'troca' => 'Troca + Valor',
+    'avista'              => 'À Vista',
+    'pix'                 => 'PIX',
+    'financiado'          => 'Financiado',
+    'consorcio'           => 'Consórcio',
+    'boleto'              => 'Boleto',
+    'troca'               => 'Troca + Valor',
+    'troca_financiamento' => 'Troca + Financiamento',
 ];
 
 // ===== COMBUSTÍVEIS =====
@@ -111,13 +114,21 @@ $status_contato = [
 
 // ===== CATEGORIAS DE DESPESAS =====
 $categorias_despesas = [
-    'manutencao' => 'Manutenção',
-    'seguro' => 'Seguro',
-    'ipva' => 'IPVA',
-    'licenciamento' => 'Licenciamento',
-    'combustivel' => 'Combustível',
-    'garantia' => 'Garantia',
-    'outro' => 'Outro',
+    'manutencao'   => 'Manutenção',
+    'seguro'       => 'Seguro / Tirar Seguro',
+    'ipva'         => 'IPVA',
+    'licenciamento'=> 'Licenciamento',
+    'transferencia'=> 'Transferência',
+    'vistoria'     => 'Vistoria',
+    'impostos'     => 'Impostos',
+    'combustivel'  => 'Combustível',
+    'estetica'     => 'Estética Automotiva',
+    'martelinho'   => 'Martelinho de Ouro',
+    'funilaria'    => 'Funilaria e Pintura',
+    'cortesia'     => 'Cortesia',
+    'compra_peca'  => 'Compra de Peça / Material',
+    'garantia'     => 'Garantia',
+    'outro'        => 'Outro',
 ];
 
 // ===== SESSÃO E HEADERS DE SEGURANÇA =====

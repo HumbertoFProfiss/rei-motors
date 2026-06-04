@@ -73,8 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $novo_id = inserir('vendas', $d);
 
-        // Registra carro de troca se forma de pagamento for troca
-        if ($d['forma_pagamento'] === 'troca' && !empty($troca['marca'])) {
+        // Registra carro de troca se forma de pagamento envolver troca
+        if (in_array($d['forma_pagamento'], ['troca', 'troca_financiamento']) && !empty($troca['marca'])) {
             inserir('carros_troca', array_merge($troca, ['venda_id' => $novo_id]));
         }
 
@@ -305,11 +305,12 @@ document.querySelector('select[name="veiculo_id"]').addEventListener('change', f
     }
 });
 
-// Exibe seção de troca quando forma de pagamento = troca
+// Exibe seção de troca quando forma de pagamento envolver troca
 var fpSelect = document.getElementById('formaPagamento');
 var secaoTroca = document.getElementById('secaoTroca');
 function toggleTroca() {
-    secaoTroca.style.display = fpSelect.value === 'troca' ? '' : 'none';
+    var v = fpSelect.value;
+    secaoTroca.style.display = (v === 'troca' || v === 'troca_financiamento') ? '' : 'none';
 }
 fpSelect.addEventListener('change', toggleTroca);
 toggleTroca(); // executa ao carregar (caso POST falhou com troca selecionada)

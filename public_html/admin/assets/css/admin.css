@@ -130,9 +130,9 @@ img { max-width: 100%; }
 .stat-card--orange::before { background: linear-gradient(90deg,#f97316,#c2410c); }
 .stat-card--red::before    { background: linear-gradient(90deg,#ef4444,#b91c1c); }
 .stat-card--purple::before { background: linear-gradient(90deg,#a855f7,#7e22ce); }
-.stat-card__label { font-size: 0.65rem; font-weight: 700; color: #454545; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
-.stat-card__valor { font-size: 1.7rem; font-weight: 700; color: #FFFFFF; line-height: 1; margin-bottom: 3px; }
-.stat-card__sub { font-size: 0.72rem; color: #505050; }
+.stat-card__label { font-size: 0.72rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.stat-card__valor { font-size: 2rem; font-weight: 700; color: #FFFFFF; line-height: 1; margin-bottom: 4px; }
+.stat-card__sub { font-size: 0.78rem; color: #606060; }
 .stat-card__icone { position: absolute; top: 14px; right: 14px; font-size: 1.4rem; opacity: 0.1; }
 
 /* ===== TABLE CONTAINER ===== */

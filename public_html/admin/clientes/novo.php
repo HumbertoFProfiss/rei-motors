@@ -117,9 +117,15 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="form-section__titulo">📍 Endereço</div>
         <div class="form-section__body">
             <div class="form-grid">
+                <div class="form-grupo">
+                    <label>CEP</label>
+                    <input type="text" name="cep" id="campo_cep" value="<?= htmlspecialchars($d['cep']) ?>"
+                           placeholder="00000-000" maxlength="9">
+                    <span class="form-grupo__hint" id="cep_status"></span>
+                </div>
                 <div class="form-grupo form-grupo--2">
                     <label>Logradouro</label>
-                    <input type="text" name="endereco" value="<?= htmlspecialchars($d['endereco']) ?>"
+                    <input type="text" name="endereco" id="campo_endereco" value="<?= htmlspecialchars($d['endereco']) ?>"
                            placeholder="Rua, Av., etc.">
                 </div>
                 <div class="form-grupo">
@@ -132,21 +138,16 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="form-grupo">
                     <label>Bairro</label>
-                    <input type="text" name="bairro" value="<?= htmlspecialchars($d['bairro']) ?>">
+                    <input type="text" name="bairro" id="campo_bairro" value="<?= htmlspecialchars($d['bairro']) ?>">
                 </div>
                 <div class="form-grupo">
                     <label>Cidade</label>
-                    <input type="text" name="cidade" value="<?= htmlspecialchars($d['cidade']) ?>">
+                    <input type="text" name="cidade" id="campo_cidade" value="<?= htmlspecialchars($d['cidade']) ?>">
                 </div>
                 <div class="form-grupo">
                     <label>Estado</label>
-                    <input type="text" name="estado" value="<?= htmlspecialchars($d['estado']) ?>"
+                    <input type="text" name="estado" id="campo_estado" value="<?= htmlspecialchars($d['estado']) ?>"
                            maxlength="2" placeholder="SP" style="text-transform:uppercase">
-                </div>
-                <div class="form-grupo">
-                    <label>CEP</label>
-                    <input type="text" name="cep" value="<?= htmlspecialchars($d['cep']) ?>"
-                           placeholder="00000-000" maxlength="9">
                 </div>
             </div>
         </div>
@@ -157,5 +158,29 @@ require_once __DIR__ . '/../includes/header.php';
         <button type="submit" class="btn-admin btn-admin--primary">Salvar Cliente</button>
     </div>
 </form>
+
+<script>
+(function () {
+    var cepInput = document.getElementById('campo_cep');
+    if (!cepInput) return;
+    cepInput.addEventListener('blur', function () {
+        var cep = this.value.replace(/\D/g, '');
+        if (cep.length !== 8) return;
+        var status = document.getElementById('cep_status');
+        status.textContent = 'Buscando...';
+        fetch('https://viacep.com.br/ws/' + cep + '/json/')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (d.erro) { status.textContent = 'CEP não encontrado.'; return; }
+                status.textContent = '';
+                document.getElementById('campo_endereco').value = d.logradouro || '';
+                document.getElementById('campo_bairro').value   = d.bairro    || '';
+                document.getElementById('campo_cidade').value   = d.localidade || '';
+                document.getElementById('campo_estado').value   = d.uf         || '';
+            })
+            .catch(function () { status.textContent = ''; });
+    });
+})();
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
