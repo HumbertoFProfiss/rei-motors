@@ -10,6 +10,14 @@ $pagina_ativa  = 'chamadas';
 $admin_root    = '../';
 $breadcrumb    = [['label' => 'Chamadas', 'url' => '']];
 
+// DELETE
+if (isset($_GET['deletar'])) {
+    $cid = (int)$_GET['deletar'];
+    if ($cid > 0) executarQuery("DELETE FROM chamadas_proposta WHERE id = ?", [$cid]);
+    header('Location: ' . ADMIN_URL . 'chamadas/?msg=deletado');
+    exit;
+}
+
 // Filtros
 $resultado_f = trim($_GET['resultado'] ?? '');
 $usuario_f   = (int)($_GET['usuario'] ?? 0);
@@ -36,7 +44,8 @@ $pagina    = min($pagina, $total_pag);
 $offset    = ($pagina - 1) * $por_pag;
 
 $chamadas = obterTodas(
-    "SELECT cp.*, c.nome AS cliente_nome, u.nome AS vendedor_nome
+    "SELECT cp.*, c.nome AS cliente_nome, c.telefone AS cliente_telefone, c.whatsapp AS cliente_whatsapp,
+            u.nome AS vendedor_nome
      FROM chamadas_proposta cp
      LEFT JOIN clientes c ON cp.cliente_id = c.id
      JOIN usuarios u ON cp.usuario_id = u.id
@@ -65,7 +74,9 @@ $msg = trim($_GET['msg'] ?? '');
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<?php if ($msg === 'salvo'): ?><div class="alert-admin alert-admin--success">✓ Chamada registrada.</div><?php endif; ?>
+<?php if ($msg === 'salvo'):   ?><div class="alert-admin alert-admin--success">✓ Chamada registrada.</div><?php endif; ?>
+<?php if ($msg === 'editado'): ?><div class="alert-admin alert-admin--success">✓ Chamada atualizada.</div><?php endif; ?>
+<?php if ($msg === 'deletado'): ?><div class="alert-admin alert-admin--success">✓ Chamada removida.</div><?php endif; ?>
 
 <div class="page__header">
     <div>
@@ -117,23 +128,45 @@ require_once __DIR__ . '/../includes/header.php';
             <tr>
                 <th>Data</th>
                 <th>Tipo</th>
-                <th>Cliente</th>
+                <th>Contato</th>
                 <th>Vendedor</th>
                 <th>Descrição</th>
                 <th>Resultado</th>
+                <th>Ações</th>
             </tr>
         </thead>
         <tbody>
         <?php foreach ($chamadas as $ch): ?>
+        <?php
+            // Nome: cliente cadastrado tem prioridade; senão usa nome_contato livre
+            $nome_exib = $ch['cliente_nome'] ?? $ch['nome_contato'] ?? null;
+            // Telefone: whatsapp > telefone do cliente; senão telefone_contato avulso
+            $fone_exib = $ch['cliente_whatsapp'] ?: ($ch['cliente_telefone'] ?: ($ch['telefone_contato'] ?? null));
+        ?>
         <tr>
             <td style="white-space:nowrap"><?= formatarData($ch['data_chamada']) ?></td>
             <td><?= $labels_tipo[$ch['tipo']] ?? $ch['tipo'] ?></td>
-            <td><?= $ch['cliente_nome'] ? htmlspecialchars($ch['cliente_nome']) : '<span style="color:#888">—</span>' ?></td>
+            <td>
+                <?php if ($nome_exib): ?>
+                    <span style="font-weight:600"><?= htmlspecialchars($nome_exib) ?></span>
+                    <?php if ($fone_exib): ?>
+                    <br><a href="https://wa.me/55<?= preg_replace('/\D/', '', $fone_exib) ?>" target="_blank"
+                           style="font-size:0.75rem;color:#D4AF37"><?= htmlspecialchars(formatarTelefone($fone_exib)) ?></a>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <span style="color:#888">—</span>
+                <?php endif; ?>
+            </td>
             <td><?= htmlspecialchars($ch['vendedor_nome']) ?></td>
-            <td style="max-width:320px;white-space:normal"><?= nl2br(htmlspecialchars($ch['descricao'])) ?></td>
+            <td style="max-width:280px;white-space:normal"><?= nl2br(htmlspecialchars($ch['descricao'])) ?></td>
             <td>
                 <?php $r = $labels_resultado[$ch['resultado']] ?? ['label' => $ch['resultado'], 'cls' => 'pendente']; ?>
                 <span class="badge-admin badge-admin--<?= $r['cls'] ?>"><?= $r['label'] ?></span>
+            </td>
+            <td class="td-acoes">
+                <a href="editar.php?id=<?= $ch['id'] ?>" class="btn-admin btn-admin--secondary btn-admin--sm">✏️</a>
+                <button onclick="confirmarAcao('?deletar=<?= $ch['id'] ?>', 'Remover chamada', 'Deseja remover esta chamada?')"
+                        class="btn-admin btn-admin--danger btn-admin--sm">✕</button>
             </td>
         </tr>
         <?php endforeach; ?>

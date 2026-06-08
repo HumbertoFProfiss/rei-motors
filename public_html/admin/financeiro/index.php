@@ -20,6 +20,7 @@ $categorias_despesas = [
     'documentacao' => 'Documentação / Taxas',
     'pneus'        => 'Pneus / Suspensão',
     'eletrica'     => 'Elétrica / Eletrônica',
+    'garantia'     => 'Garantia / Pós-Venda',
     'outros'       => 'Outros',
 ];
 
@@ -79,40 +80,16 @@ if (isset($_GET['deletar'])) {
 }
 
 // ADD
-// Despesas fixas recorrentes (quick-add via GET)
 $recorrentes = [
-    'aluguel'   => ['label' => 'Aluguel',           'categoria' => 'outro'],
-    'agua'      => ['label' => 'Água',               'categoria' => 'outro'],
-    'luz'       => ['label' => 'Luz',                'categoria' => 'outro'],
-    'internet'  => ['label' => 'Internet/Telefone',  'categoria' => 'outro'],
-    'limpeza'   => ['label' => 'Limpeza',             'categoria' => 'outro'],
-    'marketing' => ['label' => 'Marketing',           'categoria' => 'outro'],
-    'trafego'   => ['label' => 'Tráfego Pago',        'categoria' => 'outro'],
-    'outros'    => ['label' => 'Outros',              'categoria' => 'outro'],
+    'aluguel'   => ['label' => 'Aluguel',          'categoria' => 'outros'],
+    'agua'      => ['label' => 'Água',              'categoria' => 'outros'],
+    'luz'       => ['label' => 'Luz',               'categoria' => 'outros'],
+    'internet'  => ['label' => 'Internet/Telefone', 'categoria' => 'outros'],
+    'limpeza'   => ['label' => 'Limpeza',           'categoria' => 'limpeza'],
+    'marketing' => ['label' => 'Marketing',         'categoria' => 'outros'],
+    'trafego'   => ['label' => 'Tráfego Pago',      'categoria' => 'outros'],
+    'outros'    => ['label' => 'Outros',            'categoria' => 'outros'],
 ];
-
-if (isset($_GET['recorrente']) && array_key_exists($_GET['recorrente'], $recorrentes)) {
-    $chave = $_GET['recorrente'];
-    $label = $recorrentes[$chave]['label'];
-    $mes_atual = date('Y-m');
-    $ja_existe = obterUmaLinha(
-        "SELECT id FROM contas_pagar WHERE descricao = ? AND DATE_FORMAT(data_vencimento,'%Y-%m') = ?",
-        [$label, $mes_atual]
-    );
-    if (!$ja_existe) {
-        inserir('contas_pagar', [
-            'descricao'       => $label,
-            'valor'           => 0.01,
-            'data_vencimento' => date('Y-m-') . '10',
-            'categoria'       => $recorrentes[$chave]['categoria'],
-            'status'          => 'pendente',
-            'recorrencia'     => 'mensal',
-            'observacoes'     => 'Adicionado via atalho — atualize o valor.',
-        ]);
-    }
-    header('Location: ' . ADMIN_URL . 'financeiro/?msg=recorrente&edit=' . ($ja_existe ? $ja_existe['id'] : ''));
-    exit;
-}
 
 $erros   = [];
 $sucesso = '';
@@ -221,14 +198,15 @@ require_once __DIR__ . '/../includes/header.php';
 
 <!-- ATALHOS DESPESAS FIXAS -->
 <div class="table-container" style="margin-bottom:1rem">
-    <div class="table-header"><h2 class="table-header__titulo">⚡ Despesas Fixas do Mês</h2></div>
+    <div class="table-header"><h2 class="table-header__titulo">⚡ Atalhos — Despesas Fixas</h2></div>
     <div style="padding:1rem;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <span style="color:var(--admin-text-muted);font-size:0.78rem;margin-right:4px">Adicionar ao mês atual:</span>
+        <span style="color:var(--admin-text-muted);font-size:0.78rem;margin-right:4px">Pré-preencher formulário:</span>
         <?php foreach ($recorrentes as $chave => $info): ?>
-        <a href="?recorrente=<?= $chave ?>" class="btn-admin btn-admin--secondary btn-admin--sm"
-           style="font-size:0.75rem" title="Adicionar <?= htmlspecialchars($info['label']) ?> deste mês">
+        <button type="button"
+                onclick="atalhoRecorrente('<?= htmlspecialchars($info['label'], ENT_QUOTES) ?>', '<?= $info['categoria'] ?>')"
+                class="btn-admin btn-admin--secondary btn-admin--sm" style="font-size:0.75rem">
             <?= htmlspecialchars($info['label']) ?>
-        </a>
+        </button>
         <?php endforeach; ?>
     </div>
 </div>
@@ -342,5 +320,18 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
     <?php endif; ?>
 </div>
+
+<script>
+function atalhoRecorrente(descricao, categoria) {
+    var form = document.querySelector('form[method="POST"]');
+    form.querySelector('[name="descricao"]').value    = descricao;
+    form.querySelector('[name="categoria"]').value    = categoria;
+    form.querySelector('[name="recorrencia"]').value  = 'mensal';
+    var campoValor = form.querySelector('[name="valor"]');
+    campoValor.value = '';
+    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(function() { campoValor.focus(); }, 350);
+}
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

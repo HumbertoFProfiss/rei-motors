@@ -55,6 +55,10 @@
 
         <div class="footer__bottom">
             <p>&copy; <?php echo date('Y'); ?> <?php echo LOJA_NOME; ?> - Todos os direitos reservados</p>
+            <p style="font-size:0.72rem;color:#555;margin-top:6px">
+                Desenvolvido por <a href="https://rstechbr.com" target="_blank" rel="noopener"
+                style="color:#D4AF37;text-decoration:none;font-weight:600">RS TECH</a>
+            </p>
             <a href="<?php echo ADMIN_URL; ?>" class="footer__admin-link" title="Área Administrativa">🔒 Admin</a>
         </div>
     </div>

@@ -1,0 +1,11 @@
+parameters:
+    level: 5
+    paths:
+        - public_html
+        - includes
+    excludePaths:
+        - public_html/assets
+        - public_html/uploads
+    phpVersion: 80200
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false

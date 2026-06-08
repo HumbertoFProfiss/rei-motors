@@ -76,6 +76,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $update = array_intersect_key($d, array_flip($campos));
         atualizar('garantias_chamados', $update, 'id = ?', [$id]);
 
+        // Quando chamado muda para "resolvido" com custo, lança em custos do veículo e contas a pagar
+        if ($d['status'] === 'resolvido' && $chamado['status'] !== 'resolvido' && ($d['custo_reparo'] ?? 0) > 0) {
+            $vei = obterUmaLinha("SELECT marca, modelo, ano FROM veiculos WHERE id = ?", [$d['veiculo_id']]);
+            $descr = 'Garantia: ' . $d['tipo_problema']
+                   . ($vei ? ' — ' . $vei['marca'] . ' ' . $vei['modelo'] . ' ' . $vei['ano'] : '');
+            $data_ref = $d['data_resolucao'] ?? date('Y-m-d');
+
+            inserir('custos_veiculo', [
+                'veiculo_id'   => $d['veiculo_id'],
+                'categoria'    => 'garantia',
+                'descricao'    => $descr,
+                'valor'        => $d['custo_reparo'],
+                'data_despesa' => $data_ref,
+            ]);
+
+            inserir('contas_pagar', [
+                'descricao'       => $descr,
+                'valor'           => $d['custo_reparo'],
+                'data_vencimento' => $data_ref,
+                'data_pagamento'  => $data_ref,
+                'categoria'       => 'garantia',
+                'status'          => 'paga',
+                'observacoes'     => 'Gerado automaticamente de garantias_chamados #' . $id,
+            ]);
+        }
+
         header('Location: ' . ADMIN_URL . 'garantias/?msg=salvo');
         exit;
     }

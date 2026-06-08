@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../../../includes/config.php';
 require_once __DIR__ . '/../../../includes/db.php';
 require_once __DIR__ . '/../../../includes/functions.php';
@@ -250,6 +250,18 @@ require_once __DIR__ . '/../includes/header.php';
 
                 <div class="form-grupo form-grupo--2" id="bloco-fipe">
                     <label>Tabela FIPE</label>
+
+                    <!-- Busca por placa -->
+                    <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--admin-border)">
+                        <input type="text" id="fipe_placa_input" placeholder="Placa (ex: ABC1234)"
+                               maxlength="8" style="flex:1;text-transform:uppercase;max-width:160px">
+                        <button type="button" id="btn_buscar_placa" class="btn-admin btn-admin--primary"
+                                style="white-space:nowrap">🚘 Preencher pela Placa</button>
+                        <span style="font-size:0.72rem;color:var(--admin-text-muted)">Preenche o carro e busca FIPE automaticamente</span>
+                    </div>
+
+                    <!-- Busca manual -->
+                    <div style="font-size:0.7rem;color:var(--admin-text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em">ou busque manualmente</div>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
                         <input type="text" id="fipe_busca_marca" placeholder="Marca (ex: Volkswagen)"
                                style="flex:1;min-width:120px">
@@ -264,7 +276,7 @@ require_once __DIR__ . '/../includes/header.php';
                            value="<?= $d['preco_tabela_fipe'] ? number_format((float)$d['preco_tabela_fipe'], 2, ',', '.') : '' ?>"
                            placeholder="Valor FIPE (R$) — preenchido automaticamente">
                     <span id="fipe_referencia" style="font-size:0.72rem;display:block;margin-top:4px"></span>
-                    <span class="form-grupo__hint">Os campos de busca são pré-preenchidos com o que você digitou acima. Edite se precisar e clique em "Buscar FIPE".</span>
+                    <span class="form-grupo__hint">Para busca manual, os campos são pré-preenchidos com os dados do veículo. Edite se precisar.</span>
                 </div>
 
                 <!-- Campos consignado -->
@@ -473,9 +485,8 @@ require_once __DIR__ . '/../includes/header.php';
                 .then(function(anos) {
                     if (!Array.isArray(anos)) throw new Error('Erro ao buscar anos');
                     var anoObj = anos.find(function(a){ return a.nome.startsWith(String(ano)); })
-                              || anos.find(function(a){ return a.nome.startsWith(String(ano - 1)); })
-                              || anos[0];
-                    if (!anoObj) throw new Error('Ano ' + ano + ' não encontrado na FIPE');
+                              || anos.find(function(a){ return a.nome.startsWith(String(ano - 1)); });
+                    if (!anoObj) throw new Error('Ano ' + ano + ' não disponível na FIPE para este modelo. Anos disponíveis: ' + anos.slice(0,5).map(function(a){return a.nome;}).join(', '));
 
                     return fetch(apiBase + '?acao=preco&marca_codigo=' + marcaObj.codigo + '&modelo_codigo=' + modeloObj.codigo + '&ano_codigo=' + encodeURIComponent(anoObj.codigo))
                     .then(function(r){ return r.json(); })
@@ -497,6 +508,82 @@ require_once __DIR__ . '/../includes/header.php';
         .then(function() {
             btnBuscar.textContent = '🔍 Buscar FIPE';
             btnBuscar.disabled = false;
+        });
+    });
+
+    // ===== BUSCA POR PLACA =====
+    var btnPlaca       = document.getElementById('btn_buscar_placa');
+    var inputPlacaFipe = document.getElementById('fipe_placa_input');
+    var placaForm      = document.querySelector('input[name="placa"]');
+
+    if (placaForm && placaForm.value) inputPlacaFipe.value = placaForm.value;
+    if (placaForm) placaForm.addEventListener('input', function() { inputPlacaFipe.value = placaForm.value; });
+
+    function capitalizarMarca(s) {
+        return (s || '').toLowerCase().replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+    }
+
+    btnPlaca.addEventListener('click', function() {
+        var placa = inputPlacaFipe.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        if (placa.length < 7) {
+            spanRef.style.color = '#ef4444';
+            spanRef.textContent = '⚠ Digite uma placa válida (ex: ABC1234 ou ABC1D23)';
+            return;
+        }
+
+        btnPlaca.textContent = '⏳ Consultando...';
+        btnPlaca.disabled = true;
+        spanRef.style.color = '#888';
+        spanRef.textContent = 'Consultando dados do veículo pela placa...';
+
+        fetch(apiBase + '?acao=placa&placa=' + placa)
+        .then(function(r) {
+            if (!r.ok) throw new Error('Placa não encontrada ou serviço indisponível (HTTP ' + r.status + ')');
+            return r.json();
+        })
+        .then(function(vei) {
+            if (vei.erro) throw new Error(vei.erro);
+
+            var marcaBruta    = (vei.marca || '').replace(/^[A-Z\s]+ - /i, '');
+            var marcaFormatada = capitalizarMarca(marcaBruta || vei.marca);
+            var modeloFormatado = (vei.modelo || '');
+            var anoVal  = vei.anoModelo || vei.ano || vei.anoFabricacao || '';
+            var combBruto = (vei.combustivel || '').toUpperCase();
+            var combMap = {'GASOLINA':'gasolina','ALCOOL':'etanol','ETANOL':'etanol','DIESEL':'diesel','FLEX':'flex','GAS NATURAL VEICULAR':'gnv','ELETRICO':'eletrico','ELÉTRICO':'eletrico','ALCOOL / GASOLINA':'flex','GASOLINA / ALCOOL':'flex','ALCOOL/GASOLINA':'flex','GASOLINA/ALCOOL':'flex','ÁLCOOL / GASOLINA':'flex','FLEX (ALCOOL/GASOLINA)':'flex'};
+
+            var fMarca       = document.querySelector('input[name="marca"]');
+            var fModelo      = document.querySelector('input[name="modelo"]');
+            var fAno         = document.querySelector('input[name="ano"]');
+            var fCombustivel = document.querySelector('select[name="combustivel"]');
+            var fCor         = document.querySelector('input[name="cor"]');
+            var fPlacaDoc    = document.querySelector('input[name="placa"]');
+
+            var fChassi = document.querySelector('input[name="numero_chassi"]');
+
+            if (fMarca  && !fMarca.value)  fMarca.value  = marcaFormatada;
+            if (fModelo && !fModelo.value) fModelo.value = modeloFormatado;
+            if (fAno    && !fAno.value)    fAno.value    = anoVal;
+            if (fCombustivel && combMap[combBruto]) fCombustivel.value = combMap[combBruto];
+            if (fCor    && vei.cor && !fCor.value) fCor.value = capitalizarMarca(vei.cor);
+            if (fPlacaDoc && !fPlacaDoc.value) fPlacaDoc.value = placa;
+            if (fChassi && vei.chassi && !fChassi.value) fChassi.value = vei.chassi;
+
+            buscaMarca.value  = marcaFormatada;
+            buscaModelo.value = modeloFormatado;
+            buscaAno.value    = anoVal;
+
+            spanRef.style.color = '#22c55e';
+            spanRef.textContent = '✓ ' + marcaFormatada + ' ' + modeloFormatado + ' ' + anoVal + ' — Buscando FIPE...';
+
+            setTimeout(function() { btnBuscar.click(); }, 400);
+        })
+        .catch(function(err) {
+            spanRef.style.color = '#ef4444';
+            spanRef.textContent = '✗ ' + (err.message || 'Placa não encontrada');
+        })
+        .then(function() {
+            btnPlaca.textContent = '🚘 Preencher pela Placa';
+            btnPlaca.disabled = false;
         });
     });
 })();

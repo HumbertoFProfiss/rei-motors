@@ -32,7 +32,7 @@ $existe = obterUmaLinha(
 );
 
 if ($existe) {
-    executar("DELETE FROM cliente_favoritos WHERE cliente_id = ? AND veiculo_id = ?", [$cliente_id, $veiculo_id]);
+    executarQuery("DELETE FROM cliente_favoritos WHERE cliente_id = ? AND veiculo_id = ?", [$cliente_id, $veiculo_id]);
     echo json_encode(['ok' => true, 'acao' => 'removido']);
 } else {
     inserir('cliente_favoritos', ['cliente_id' => $cliente_id, 'veiculo_id' => $veiculo_id]);

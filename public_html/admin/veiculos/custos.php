@@ -24,6 +24,7 @@ $categorias_despesas = [
     'documentacao' => 'Documentação / Taxas',
     'pneus'        => 'Pneus / Suspensão',
     'eletrica'     => 'Elétrica / Eletrônica',
+    'garantia'     => 'Garantia / Pós-Venda',
     'outros'       => 'Outros',
 ];
 
@@ -122,18 +123,27 @@ $total_geral_custos = (float)(obterUmaLinha(
     [$id]
 )['t'] ?? 0);
 
-// Totais para cálculo de lucro
-$total_custos_adicionais = array_sum(array_column($custos, 'valor'));
-$total_garantias = (float)(obterUmaLinha(
-    "SELECT COALESCE(SUM(custo_reparo), 0) as total FROM garantias_chamados WHERE veiculo_id = ?",
+// Totais para cálculo de lucro (sempre sem filtro de categoria para não distorcer)
+$total_todos_custos = (float)(obterUmaLinha(
+    "SELECT COALESCE(SUM(valor),0) t FROM custos_veiculo WHERE veiculo_id = ?",
     [$id]
-)['total'] ?? 0);
+)['t'] ?? 0);
+
+$total_garantias = (float)(obterUmaLinha(
+    "SELECT COALESCE(SUM(valor),0) t FROM custos_veiculo WHERE veiculo_id = ? AND categoria = 'garantia'",
+    [$id]
+)['t'] ?? 0);
+
+$total_despesas_prep = $total_todos_custos - $total_garantias;
+
+// Total filtrado (para rodapé da tabela)
+$total_custos_adicionais = array_sum(array_column($custos, 'valor'));
 
 $lucro = calcularLucroVeiculo(
     $veiculo['preco_venda'],
     $veiculo['preco_custo'],
-    $total_custos_adicionais,
-    $total_garantias
+    $total_todos_custos,
+    0
 );
 
 $msg = trim($_GET['msg'] ?? '');
@@ -166,11 +176,11 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="stat-card__valor"><?= formatarMoeda($veiculo['preco_custo']) ?></div>
     </div>
     <div class="stat-card stat-card--orange">
-        <div class="stat-card__label">Despesas Adicionais</div>
-        <div class="stat-card__valor"><?= formatarMoeda($total_custos_adicionais) ?></div>
+        <div class="stat-card__label">Despesas de Preparação</div>
+        <div class="stat-card__valor"><?= formatarMoeda($total_despesas_prep) ?></div>
     </div>
     <div class="stat-card stat-card--red">
-        <div class="stat-card__label">Custos de Garantia</div>
+        <div class="stat-card__label">Custos Pós-Venda / Garantia</div>
         <div class="stat-card__valor"><?= formatarMoeda($total_garantias) ?></div>
     </div>
     <div class="stat-card <?= $lucro >= 0 ? 'stat-card--green' : 'stat-card--red' ?>">

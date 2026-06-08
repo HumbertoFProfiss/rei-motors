@@ -20,3 +20,9 @@ vendor/
 # Arquivos de deploy/build
 *.zip
 *.tar.gz
+
+# Ferramentas de análise estática (binários grandes)
+phpstan.phar
+
+# Segredos — NÃO versionar tokens/senhas
+includes/secrets.php

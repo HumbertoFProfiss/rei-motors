@@ -62,6 +62,15 @@ define('SMTP_PORT', 587);
 define('SMTP_USER', 'reimotorsoficial@gmail.com');
 define('SMTP_PASS', 'senha_email_aqui');
 
+// ===== SEGREDOS (tokens, senhas de API) =====
+// Arquivo separado, não versionado. Crie includes/secrets.php no servidor.
+if (file_exists(__DIR__ . '/secrets.php')) {
+    require_once __DIR__ . '/secrets.php';
+}
+if (!defined('WDAPI2_TOKEN')) {
+    define('WDAPI2_TOKEN', ''); // fallback — configure secrets.php no servidor
+}
+
 // ===== REDES SOCIAIS =====
 $redes_sociais = [
     'facebook' => 'https://www.facebook.com/profile.php?id=61565888583290',
