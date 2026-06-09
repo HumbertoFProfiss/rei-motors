@@ -446,6 +446,25 @@ require_once __DIR__ . '/../includes/header.php';
         });
         return (melhor && menorDist <= maxDist) ? melhor : null;
     }
+    function melhoresMatches(lista, texto, chave, maxN) {
+        var t = norm(texto);
+        if (!t || !lista.length) return [];
+        var scored = lista.map(function(item) {
+            var n = norm(item[chave]);
+            if (n === t) return {item: item, score: 0};
+            if (n.startsWith(t) || t.startsWith(n)) return {item: item, score: 1};
+            if (n.includes(t) || t.includes(n)) return {item: item, score: 2};
+            var partes = t.split(/\s+/).filter(function(p){ return p.length > 2; });
+            if (partes.length && partes.every(function(p){ return n.includes(p); })) return {item: item, score: 3};
+            if (partes.length && partes.some(function(p){ return n.includes(p); })) return {item: item, score: 4};
+            var d = lev(t, n);
+            var maxDist = Math.max(2, Math.floor(t.length * 0.45));
+            return {item: item, score: d <= maxDist ? 5 + d : 999};
+        });
+        return scored.filter(function(s){ return s.score < 999; })
+            .sort(function(a, b){ return a.score - b.score; })
+            .slice(0, maxN || 5).map(function(s){ return s.item; });
+    }
 
     btnBuscar.addEventListener('click', function () {
         var marca  = buscaMarca.value.trim();
@@ -476,29 +495,33 @@ require_once __DIR__ . '/../includes/header.php';
             .then(function(data) {
                 var modelos = data.modelos || data;
                 if (!Array.isArray(modelos)) throw new Error('Erro ao buscar modelos');
-                var modeloObj = melhorMatch(modelos, modelo, 'nome');
-                if (!modeloObj) throw new Error('Modelo "' + modelo + '" não encontrado para ' + marcaObj.nome);
-                spanRef.textContent = '✓ ' + marcaObj.nome + ' ' + modeloObj.nome + ' — procurando ano...';
+                var candidatos = melhoresMatches(modelos, modelo, 'nome', 6);
+                if (!candidatos.length) throw new Error('Modelo "' + modelo + '" não encontrado para ' + marcaObj.nome);
 
-                return fetch(apiBase + '?acao=anos&marca_codigo=' + marcaObj.codigo + '&modelo_codigo=' + modeloObj.codigo)
-                .then(function(r){ return r.json(); })
-                .then(function(anos) {
-                    if (!Array.isArray(anos)) throw new Error('Erro ao buscar anos');
-                    var anoObj = anos.find(function(a){ return a.nome.startsWith(String(ano)); })
-                              || anos.find(function(a){ return a.nome.startsWith(String(ano - 1)); });
-                    if (!anoObj) throw new Error('Ano ' + ano + ' não disponível na FIPE para este modelo. Anos disponíveis: ' + anos.slice(0,5).map(function(a){return a.nome;}).join(', '));
-
-                    return fetch(apiBase + '?acao=preco&marca_codigo=' + marcaObj.codigo + '&modelo_codigo=' + modeloObj.codigo + '&ano_codigo=' + encodeURIComponent(anoObj.codigo))
+                function tentarModelo(idx) {
+                    if (idx >= candidatos.length) throw new Error('Nenhum modelo de "' + modelo + '" da ' + marcaObj.nome + ' tem dados FIPE para ' + ano + '. Ajuste o modelo na busca manual.');
+                    var modeloObj = candidatos[idx];
+                    spanRef.textContent = '✓ ' + marcaObj.nome + ' — testando: ' + modeloObj.nome + '...';
+                    return fetch(apiBase + '?acao=anos&marca_codigo=' + marcaObj.codigo + '&modelo_codigo=' + modeloObj.codigo)
                     .then(function(r){ return r.json(); })
-                    .then(function(preco) {
-                        if (preco.erro) throw new Error(preco.erro);
-                        if (!preco.Valor) throw new Error('Preço não retornado');
-                        var v = preco.Valor.replace(/R\$\s?/, '').replace(/\./g, '').replace(',', '.');
-                        inputFipe.value = parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-                        spanRef.style.color = '#22c55e';
-                        spanRef.textContent = '✓ ' + marcaObj.nome + ' ' + modeloObj.nome + ' ' + anoObj.nome + ' — Ref: ' + (preco.MesReferencia || '');
+                    .then(function(anos) {
+                        if (!Array.isArray(anos)) throw new Error('Erro ao buscar anos');
+                        var anoObj = anos.find(function(a){ return a.nome.startsWith(String(ano)); })
+                                  || anos.find(function(a){ return a.nome.startsWith(String(ano - 1)); });
+                        if (!anoObj) return tentarModelo(idx + 1);
+                        return fetch(apiBase + '?acao=preco&marca_codigo=' + marcaObj.codigo + '&modelo_codigo=' + modeloObj.codigo + '&ano_codigo=' + encodeURIComponent(anoObj.codigo))
+                        .then(function(r){ return r.json(); })
+                        .then(function(preco) {
+                            if (preco.erro) throw new Error(preco.erro);
+                            if (!preco.Valor) throw new Error('Preço não retornado');
+                            var v = preco.Valor.replace(/R\$\s?/, '').replace(/\./g, '').replace(',', '.');
+                            inputFipe.value = parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+                            spanRef.style.color = '#22c55e';
+                            spanRef.textContent = '✓ ' + marcaObj.nome + ' ' + modeloObj.nome + ' ' + anoObj.nome + ' — Ref: ' + (preco.MesReferencia || '');
+                        });
                     });
-                });
+                }
+                return tentarModelo(0);
             });
         })
         .catch(function(err) {
