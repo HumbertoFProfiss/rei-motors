@@ -376,7 +376,7 @@ require_once __DIR__ . '/../includes/header.php';
 </form>
 
 <script>
-// ===== FIPE =====
+// ===== FIPE — busca paralela v3 =====
 (function () {
     var btnBuscar   = document.getElementById('btn_buscar_fipe');
     var inputFipe   = document.getElementById('preco_tabela_fipe');
