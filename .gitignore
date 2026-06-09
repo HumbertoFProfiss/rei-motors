@@ -26,3 +26,4 @@ phpstan.phar
 
 # Segredos — NÃO versionar tokens/senhas
 includes/secrets.php
+includes/db.php

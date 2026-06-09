@@ -13,7 +13,13 @@ define('LOJA_ENDERECO', 'R. Maj. Matheus, 236 - Vila dos Lavradores, Botucatu - 
 define('LOJA_HORARIO', 'Seg-Sex: 08h às 18h30 | Sáb: 08h às 13h');
 
 // ===== URLs =====
-define('BASE_URL', 'http://localhost:8080/'); // Mudar em produção
+$_host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+if (str_contains($_host, 'worldcred.com.br')) {
+    define('BASE_URL', 'https://worldcred.com.br/');
+} else {
+    define('BASE_URL', 'http://localhost:8080/');
+}
+unset($_host);
 define('ADMIN_URL', BASE_URL . 'admin/');
 define('CLIENTE_URL', BASE_URL . 'cliente/');
 define('UPLOAD_DIR', '/uploads/');
