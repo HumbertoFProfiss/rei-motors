@@ -9,27 +9,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
-      - name: Upload arquivos alterados via FTP
+      - name: Apaga estado anterior (força re-sync completo)
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
         run: |
-          SKIP="^(includes/db\.php|includes/secrets\.php|.*\.sql|phpstan|iniciar_servidor|migracoes/|logs/|\.github/|\.gitignore|phpstan\.neon)"
+          curl --silent --user "${FTP_USER}:${FTP_PASS}" \
+            --quote "DELE .ftp-deploy-sync-state.json" \
+            "ftp://${FTP_HOST}/" || true
 
-          git diff-tree --no-commit-id -r --name-only HEAD | while IFS= read -r file; do
-            if echo "$file" | grep -qE "$SKIP"; then
-              echo "SKIP: $file"
-              continue
-            fi
-            if [ -f "$file" ]; then
-              echo "UPLOAD: $file"
-              curl --silent --show-error --ftp-create-dirs \
-                --user "${FTP_USER}:${FTP_PASS}" \
-                -T "$file" \
-                "ftp://${FTP_HOST}/${file}"
-            fi
-          done
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          local-dir: ./
+          server-dir: /
+          log-level: verbose
+          exclude: |
+            **/.git*
+            **/.git*/**
+            includes/db.php
+            includes/secrets.php
+            *.sql
+            phpstan.phar
+            phpstan.neon
+            iniciar_servidor.bat
+            migracoes/**
+            logs/**
+            rei_motors_data.sql
+            diag_upload.php
