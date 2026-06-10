@@ -143,17 +143,26 @@ function uploadImagem($arquivo, $pasta = '') {
         mkdir($pasta_completa, 0755, true);
     }
     
-    // Salvar arquivo com nome único
-    $nome_arquivo = gerarHashArquivo() . '.' . pathinfo($arquivo['name'], PATHINFO_EXTENSION);
+    // Sempre salva como .jpg — otimizarImagem() converte tudo para JPEG
+    $nome_arquivo     = gerarHashArquivo() . '.jpg';
     $caminho_completo = $pasta_completa . $nome_arquivo;
-    
-    if (!move_uploaded_file($arquivo['tmp_name'], $caminho_completo)) {
+
+    // Move para local temporário com extensão original para o move_uploaded_file
+    $tmp_ext  = strtolower(pathinfo($arquivo['name'], PATHINFO_EXTENSION));
+    $tmp_path = $pasta_completa . gerarHashArquivo() . '.' . $tmp_ext;
+
+    if (!move_uploaded_file($arquivo['tmp_name'], $tmp_path)) {
         return ['sucesso' => false, 'erro' => 'Erro ao salvar arquivo'];
     }
-    
-    // Otimizar imagem (usando GD se disponível)
-    otimizarImagem($caminho_completo);
-    
+
+    // Otimizar/converter para JPEG final
+    if (!otimizarImagem($tmp_path, $caminho_completo)) {
+        // Fallback: se GD não estiver disponível, renomeia direto
+        rename($tmp_path, $caminho_completo);
+    } else {
+        @unlink($tmp_path);
+    }
+
     return [
         'sucesso' => true,
         'caminho' => $pasta . $nome_arquivo,
@@ -164,53 +173,55 @@ function uploadImagem($arquivo, $pasta = '') {
 /**
  * Otimizar imagem com GD Library
  */
-function otimizarImagem($caminho_arquivo) {
+function otimizarImagem($origem, $destino = null) {
     if (!extension_loaded('gd')) {
         return false;
     }
-    
+    if ($destino === null) $destino = $origem;
+
     try {
-        $info = getimagesize($caminho_arquivo);
+        $info = getimagesize($origem);
+        if (!$info) return false;
         $tipo = $info[2];
-        
-        // Carregar imagem original
+
         switch ($tipo) {
-            case IMAGETYPE_JPEG:
-                $imagem = imagecreatefromjpeg($caminho_arquivo);
-                break;
-            case IMAGETYPE_PNG:
-                $imagem = imagecreatefrompng($caminho_arquivo);
-                break;
-            case IMAGETYPE_WEBP:
-                $imagem = imagecreatefromwebp($caminho_arquivo);
-                break;
-            default:
-                return false;
+            case IMAGETYPE_JPEG: $imagem = imagecreatefromjpeg($origem); break;
+            case IMAGETYPE_PNG:  $imagem = imagecreatefrompng($origem);  break;
+            case IMAGETYPE_WEBP: $imagem = imagecreatefromwebp($origem); break;
+            default: return false;
         }
-        
+
         if (!$imagem) return false;
-        
-        // Redimensionar se maior que limite
-        $largura_orig = imagesx($imagem);
-        $altura_orig = imagesy($imagem);
-        
-        if ($largura_orig > IMG_MAX_WIDTH || $altura_orig > IMG_MAX_HEIGHT) {
-            $ratio = min(IMG_MAX_WIDTH / $largura_orig, IMG_MAX_HEIGHT / $altura_orig);
-            $nova_largura = $largura_orig * $ratio;
-            $nova_altura = $altura_orig * $ratio;
-            
-            $imagem_redimensionada = imagecreatetruecolor($nova_largura, $nova_altura);
-            imagecopyresampled($imagem_redimensionada, $imagem, 0, 0, 0, 0, $nova_largura, $nova_altura, $largura_orig, $altura_orig);
-            
-            imagejpeg($imagem_redimensionada, $caminho_arquivo, 85);
-            imagedestroy($imagem_redimensionada);
+
+        $larg = imagesx($imagem);
+        $alt  = imagesy($imagem);
+
+        if ($larg > IMG_MAX_WIDTH || $alt > IMG_MAX_HEIGHT) {
+            $ratio = min(IMG_MAX_WIDTH / $larg, IMG_MAX_HEIGHT / $alt);
+            $nw = (int)($larg * $ratio);
+            $nh = (int)($alt  * $ratio);
+            $novo = imagecreatetruecolor($nw, $nh);
+            // Fundo branco para PNG com transparência
+            imagefill($novo, 0, 0, imagecolorallocate($novo, 255, 255, 255));
+            imagecopyresampled($novo, $imagem, 0, 0, 0, 0, $nw, $nh, $larg, $alt);
+            imagejpeg($novo, $destino, 85);
+            imagedestroy($novo);
         } else {
-            imagejpeg($imagem, $caminho_arquivo, 85);
+            // Para PNG/WebP com transparência: adiciona fundo branco
+            if ($tipo === IMAGETYPE_PNG || $tipo === IMAGETYPE_WEBP) {
+                $fundo = imagecreatetruecolor($larg, $alt);
+                imagefill($fundo, 0, 0, imagecolorallocate($fundo, 255, 255, 255));
+                imagecopy($fundo, $imagem, 0, 0, 0, 0, $larg, $alt);
+                imagejpeg($fundo, $destino, 85);
+                imagedestroy($fundo);
+            } else {
+                imagejpeg($imagem, $destino, 85);
+            }
         }
-        
+
         imagedestroy($imagem);
         return true;
-        
+
     } catch (Exception $e) {
         error_log("Erro ao otimizar imagem: " . $e->getMessage());
         return false;
