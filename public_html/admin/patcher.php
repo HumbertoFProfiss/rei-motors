@@ -2,53 +2,86 @@
 if (($_GET['token'] ?? '') !== 'reimotors2026fix') { http_response_code(403); die('403'); }
 header('Content-Type: text/plain; charset=utf-8');
 
-// Informações do servidor
-$dr   = $_SERVER['DOCUMENT_ROOT'] ?? '';
-$file = __FILE__;
-$dir  = __DIR__;
+$dir = __DIR__; // /home2/reidosco/worldcred.com.br/admin
 
-echo "FILE=$file\n";
-echo "DOCROOT=$dr\n\n";
+// ===== 1. CORRIGIR UPLOAD_PATH NO config.php =====
+echo "=== CORRIGINDO config.php ===\n";
+$config_path = $dir . '/../../includes/config.php'; // /home2/reidosco/includes/config.php
+$config = file_get_contents($config_path);
 
-// Descobrir onde os uploads devem estar para ser web-acessíveis
-// BASE_URL/uploads/ deve mapear para o diretório de uploads correto
-// A raiz web é DOCUMENT_ROOT
-$uploads_web = $dr . '/uploads/veiculos/';
-if (!is_dir($uploads_web)) @mkdir($uploads_web, 0755, true);
+// Detectar UPLOAD_PATH atual
+preg_match("/define\('UPLOAD_PATH',\s*(.+?)\);/", $config, $m);
+echo "UPLOAD_PATH atual no config: " . ($m[1] ?? 'NAO ENCONTRADO') . "\n";
 
-// Teste: gravar arquivo no DOCROOT/uploads/veiculos/ e checar via HTTP
-$url_base = 'https://worldcred.com.br';
-$test_file = 'ptest_' . time() . '.txt';
-$test_path = $uploads_web . $test_file;
-file_put_contents($test_path, 'ok');
-@chmod($test_path, 0644);
-$h = @get_headers("$url_base/uploads/veiculos/$test_file");
-$status_docroot = $h ? substr($h[0], 9, 3) : '???';
-@unlink($test_path);
-echo "TEST_DOCROOT_UPLOADS=$status_docroot (esperado: 200)\n";
+$old  = "define('UPLOAD_PATH', __DIR__ . '/../uploads/');";
+$novo = "define('UPLOAD_PATH', __DIR__ . '/../worldcred.com.br/uploads/');";
 
-// Onde o PHP está salvando os uploads atualmente
-require_once $dir . '/../../includes/config.php';
-echo "UPLOAD_PATH=" . UPLOAD_PATH . "\n";
-echo "UPLOAD_realpath=" . realpath(UPLOAD_PATH) . "\n";
-echo "DOCROOT_uploads_realpath=" . realpath($dr . '/uploads') . "\n";
-
-// Verificar se são o mesmo diretório
-$same = (realpath(UPLOAD_PATH) === realpath($dr . '/uploads/'));
-echo "UPLOAD_PATH_CORRETO=" . ($same ? "SIM" : "NAO") . "\n\n";
-
-// Corrigir functions.php puxando do GitHub
-echo "=== ATUALIZANDO functions.php ===\n";
-$fn_url = 'https://raw.githubusercontent.com/HumbertoFProfiss/rei-motors/main/includes/functions.php';
-$fn_content = @file_get_contents($fn_url);
-if ($fn_content && strlen($fn_content) > 10000) {
-    $fn_path = $dir . '/../../includes/functions.php';
-    $wrote = file_put_contents($fn_path, $fn_content);
-    @chmod($fn_path, 0644);
-    echo "functions.php atualizado: $wrote bytes escritos\n";
-    echo "Tem fix .jpg: " . (str_contains($fn_content, "gerarHashArquivo() . '.jpg'") ? "SIM" : "NAO") . "\n";
+if (str_contains($config, $old)) {
+    $config_novo = str_replace($old, $novo, $config);
+    file_put_contents($config_path, $config_novo);
+    echo "config.php CORRIGIDO: uploads/ → worldcred.com.br/uploads/\n";
+} elseif (str_contains($config, $novo)) {
+    echo "config.php ja esta correto.\n";
 } else {
-    echo "ERRO: nao conseguiu baixar functions.php do GitHub (len=" . strlen($fn_content) . ")\n";
+    echo "AVISO: padrao nao encontrado, mostrando linha atual:\n";
+    foreach (explode("\n", $config) as $i => $line) {
+        if (str_contains($line, 'UPLOAD_PATH')) echo ($i+1) . ": $line\n";
+    }
 }
 
-echo "\nEND\n";
+// Recarregar config para verificar
+require_once $config_path;
+echo "UPLOAD_PATH agora: " . UPLOAD_PATH . "\n";
+echo "UPLOAD_PATH realpath: " . realpath(UPLOAD_PATH) . "\n\n";
+
+// Garantir que a pasta veiculos existe
+$pasta = UPLOAD_PATH . 'veiculos/';
+if (!is_dir($pasta)) {
+    mkdir($pasta, 0755, true);
+    echo "Criou pasta: $pasta\n";
+} else {
+    echo "Pasta OK: $pasta\n";
+}
+@chmod(UPLOAD_PATH, 0755);
+@chmod($pasta, 0755);
+
+// ===== 2. LIMPAR BANCO =====
+echo "\n=== LIMPANDO BANCO ===\n";
+require_once $dir . '/../../includes/db.php';
+require_once $dir . '/../../includes/functions.php';
+
+$fotos = obterTodas("SELECT vf.id, vf.caminho, vf.veiculo_id FROM veiculos_fotos vf ORDER BY vf.id");
+$del = 0; $ok = 0;
+foreach ($fotos as $f) {
+    $arquivo = UPLOAD_PATH . $f['caminho'];
+    if (file_exists($arquivo)) {
+        echo "OK   [{$f['id']}] {$f['caminho']}\n";
+        $ok++;
+    } else {
+        executarQuery("DELETE FROM veiculos_fotos WHERE id = ?", [$f['id']]);
+        echo "DEL  [{$f['id']}] {$f['caminho']} (arquivo nao existe)\n";
+        $del++;
+    }
+}
+echo "Total: $ok OK, $del deletadas\n\n";
+
+// ===== 3. TESTE FINAL =====
+echo "=== TESTE FINAL ===\n";
+$test = UPLOAD_PATH . 'veiculos/testfinal.jpg';
+$img = imagecreatetruecolor(10, 10);
+$c   = imagecolorallocate($img, 100, 150, 200);
+imagefill($img, 0, 0, $c);
+imagejpeg($img, $test, 80);
+imagedestroy($img);
+@chmod($test, 0644);
+
+$url  = BASE_URL . 'uploads/veiculos/testfinal.jpg';
+$h    = @get_headers($url);
+$stat = $h ? substr($h[0], 9, 3) : '???';
+echo "Arquivo: $test\n";
+echo "URL: $url\n";
+echo "HTTP: $stat\n";
+@unlink($test);
+
+echo "\n" . ($stat === '200' ? "SUCESSO! Upload funcionando." : "FALHOU. HTTP=$stat") . "\n";
+echo "END\n";
