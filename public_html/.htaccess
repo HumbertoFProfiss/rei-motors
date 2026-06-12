@@ -1,52 +1,31 @@
-# Rei Motors - Configurações HostGator
-# .htaccess para rewrite de URLs e segurança
+# Rei Motors — HostGator
 
-# ===== REWRITE URLS =====
+Options -Indexes
+
+# ===== REWRITE =====
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
-    # Remover index.php das URLs
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
-</IfModule>
-
-# ===== REDIRECIONAR HTTP PARA HTTPS =====
-<IfModule mod_rewrite.c>
+    # HTTPS redirect (antes de qualquer outra regra)
     RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Bloquear acesso direto à pasta includes
+    RewriteRule ^includes/ - [F,L]
+
+    # Bloquear execução de PHP em /uploads
+    RewriteRule ^uploads/.*\.ph(p[0-9]?|tml|ps|ar|t)$ - [F,L]
 </IfModule>
 
-# ===== PROTEGER DIRETÓRIOS SENSÍVEIS =====
+# ===== LIMITES DE UPLOAD =====
+php_value upload_max_filesize 64M
+php_value post_max_size 68M
+php_value max_execution_time 60
+php_value memory_limit 256M
 
-# Proteger /includes
-<FilesMatch "\.php$">
-    <If "%{REQUEST_URI} =~ m#/includes/#">
-        Deny from all
-    </If>
-</FilesMatch>
-
-# Proteger /logs
-<Directory ~ "/logs">
-    Order allow,deny
-    Deny from all
-</Directory>
-
-# ===== SEGURANÇA - HEADERS =====
-
-# Desabilitar acesso a arquivos ocultos
-<FilesMatch "^\.">
-    <IfModule mod_authz_core.c>
-        Require all denied
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order allow,deny
-        Deny from all
-    </IfModule>
-</FilesMatch>
-
-# Prevenir acesso a arquivos sensíveis
+# ===== BLOQUEAR ARQUIVOS SENSÍVEIS =====
 <FilesMatch "\.(conf|sql|ini|env|log)$">
     <IfModule mod_authz_core.c>
         Require all denied
@@ -57,88 +36,41 @@
     </IfModule>
 </FilesMatch>
 
-# ===== PERFORMANCE =====
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
 
-# Ativar compressão GZIP
+# ===== PERFORMANCE =====
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
 </IfModule>
 
-# Cache no navegador (meses)
 <IfModule mod_expires.c>
     ExpiresActive On
-    
-    # Imagens
     ExpiresByType image/jpeg "access plus 30 days"
     ExpiresByType image/gif "access plus 30 days"
     ExpiresByType image/png "access plus 30 days"
     ExpiresByType image/webp "access plus 30 days"
-    
-    # CSS e JS
     ExpiresByType text/css "access plus 7 days"
     ExpiresByType application/javascript "access plus 7 days"
     ExpiresByType text/javascript "access plus 7 days"
-    
-    # Fontes
-    ExpiresByType font/truetype "access plus 1 year"
-    ExpiresByType font/opentype "access plus 1 year"
-    ExpiresByType application/x-font-ttf "access plus 1 year"
-    
-    # Padrão
     ExpiresDefault "access plus 2 days"
 </IfModule>
 
-# E-Tags (cache)
+# ===== HEADERS =====
 <IfModule mod_headers.c>
     Header unset ETag
     FileETag None
-</IfModule>
-
-# ===== PROTEÇÃO PHP =====
-
-# Desabilitar acesso direto a upload de arquivos PHP
-<Directory ~ "^/public_html/uploads">
-    php_flag engine off
-    AddType text/plain .php .phtml .php3 .php4 .php5 .php6 .php7 .php8 .phps .pht .phar .phpt .pgif .shtml .htaccess .phtml .inc .hphp .ctp .sps .com .lib .php5s .php7s
-</Directory>
-
-# ===== LIMITES =====
-
-# Limite de tamanho de upload (HostGator: máx 512MB)
-php_value upload_max_filesize 512M
-php_value post_max_size 516M
-
-# Timeout de execução (HostGator: máx 60s)
-php_value max_execution_time 60
-
-# Memory limit (HostGator: máx 512MB)
-php_value memory_limit 512M
-
-# ===== HEADERS SEGURANÇA =====
-
-<IfModule mod_headers.c>
-    # Evitar clickjacking
     Header always set X-Frame-Options "SAMEORIGIN"
-    
-    # Proteção XSS
     Header always set X-Content-Type-Options "nosniff"
-    Header always set X-XSS-Protection "1; mode=block"
-    
-    # CSP básico
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; media-src 'self' https: data:; connect-src 'self' https:;"
-    
-    # Referrer Policy
-    Header always set Referrer-Policy "strict-origin-when-cross-origin"
-    
-    # Permissions Policy
-    Header always set Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
 </IfModule>
 
 # ===== TIPOS MIME =====
-
-AddType application/x-font-ttf ttf
-AddType application/x-font-opentype otf
 AddType application/font-woff woff
 AddType application/font-woff2 woff2
-
-# ===== FIM .HTACCESS =====
