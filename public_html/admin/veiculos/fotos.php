@@ -55,6 +55,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
 
         $resultado = uploadImagem($arquivo, 'veiculos/');
         if ($resultado['sucesso']) {
+            // Garante .jpg e permissão 644 independente da versão do functions.php
+            $caminho_atual = $resultado['caminho_completo'];
+            $dir  = rtrim(UPLOAD_PATH . 'veiculos', '/') . '/';
+            $hash = pathinfo($caminho_atual, PATHINFO_FILENAME);
+            $jpg  = $dir . $hash . '.jpg';
+            if ($caminho_atual !== $jpg) {
+                rename($caminho_atual, $jpg);
+                $resultado['caminho_completo'] = $jpg;
+                $resultado['caminho'] = 'veiculos/' . $hash . '.jpg';
+            }
+            @chmod($resultado['caminho_completo'], 0644);
+
             $ordem_atual++;
             $eh_principal = (!$tem_principal && $i === 0) ? 1 : 0;
             inserir('veiculos_fotos', [
