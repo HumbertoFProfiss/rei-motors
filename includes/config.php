@@ -16,14 +16,15 @@ define('LOJA_HORARIO', 'Seg-Sex: 08h às 18h30 | Sáb: 08h às 13h');
 $_host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 if (str_contains($_host, 'worldcred.com.br')) {
     define('BASE_URL', 'https://worldcred.com.br/');
+    define('UPLOAD_PATH', __DIR__ . '/../uploads/');
 } else {
     define('BASE_URL', 'http://localhost:8080/');
+    define('UPLOAD_PATH', __DIR__ . '/../public_html/uploads/');
 }
 unset($_host);
 define('ADMIN_URL', BASE_URL . 'admin/');
 define('CLIENTE_URL', BASE_URL . 'cliente/');
 define('UPLOAD_DIR', '/uploads/');
-define('UPLOAD_PATH', __DIR__ . '/../public_html/uploads/');
 
 // ===== SESSÃO =====
 define('SESSION_TIMEOUT', 3600); // 1 hora em segundos
