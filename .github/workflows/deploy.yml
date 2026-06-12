@@ -24,20 +24,17 @@ jobs:
           set net:timeout 30
           set net:max-retries 3
           set ssl:verify-certificate no
-          mirror --reverse --verbose \
-            --no-empty-dirs \
-            --parallel=3 \
-            --exclude-glob .git \
-            --exclude-glob .gitignore \
-            --exclude-glob .github \
-            --exclude-glob includes/db.php \
-            --exclude-glob includes/secrets.php \
-            --exclude-glob "*.sql" \
-            --exclude-glob migracoes \
-            --exclude-glob logs \
-            --exclude-glob phpstan.phar \
-            --exclude-glob phpstan.neon \
-            --exclude-glob iniciar_servidor.bat \
-            . .
+
+          # Deploy includes/ (excluindo credenciais que só existem no servidor)
+          mirror --reverse --verbose --no-empty-dirs --parallel=3 \
+            --exclude-glob db.php \
+            --exclude-glob secrets.php \
+            includes/ includes/
+
+          # Deploy public_html/ diretamente na raiz do servidor (onde o site roda)
+          mirror --reverse --verbose --no-empty-dirs --parallel=3 \
+            --exclude-glob .gitkeep \
+            public_html/ ./
+
           bye
           LFTP_SCRIPT
