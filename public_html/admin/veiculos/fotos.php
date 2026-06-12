@@ -70,7 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
         }
     }
 
-    if ($ok > 0) $sucesso = "$ok foto(s) enviada(s) com sucesso.";
+    if ($ok > 0) {
+        header('Location: fotos.php?id=' . $id . '&msg=enviadas&ok=' . $ok);
+        exit;
+    }
 }
 
 // ===== DEFINIR COMO PRINCIPAL =====
@@ -108,6 +111,7 @@ if (isset($_GET['deletar_foto'])) {
 }
 
 $msg   = trim($_GET['msg'] ?? '');
+$ok_count = (int)($_GET['ok'] ?? 0);
 $fotos = obterTodas(
     "SELECT * FROM veiculos_fotos WHERE veiculo_id = ? ORDER BY principal DESC, ordem ASC",
     [$id]
@@ -116,8 +120,8 @@ $fotos = obterTodas(
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<?php if ($sucesso): ?><div class="alert-admin alert-admin--success">✓ <?= htmlspecialchars($sucesso) ?></div><?php endif; ?>
 <?php if ($erros): ?><div class="alert-admin alert-admin--error"><?= implode('<br>', $erros) ?></div><?php endif; ?>
+<?php if ($msg === 'enviadas' && $ok_count > 0): ?><div class="alert-admin alert-admin--success">✓ <?= $ok_count ?> foto(s) enviada(s) com sucesso.</div><?php endif; ?>
 <?php if ($msg === 'criado'):   ?><div class="alert-admin alert-admin--success">✓ Veículo criado! Adicione as fotos agora.</div><?php endif; ?>
 <?php if ($msg === 'principal'): ?><div class="alert-admin alert-admin--success">✓ Foto principal definida.</div><?php endif; ?>
 <?php if ($msg === 'deletada'): ?><div class="alert-admin alert-admin--success">✓ Foto removida.</div><?php endif; ?>
