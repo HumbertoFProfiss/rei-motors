@@ -16,7 +16,10 @@ define('LOJA_HORARIO', 'Seg-Sex: 08h às 18h30 | Sáb: 08h às 13h');
 $_host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 if (str_contains($_host, 'worldcred.com.br')) {
     define('BASE_URL', 'https://worldcred.com.br/');
-    define('UPLOAD_PATH', __DIR__ . '/../uploads/');
+    // DOCUMENT_ROOT = /home2/reidosco/worldcred.com.br — uploads dentro do docroot
+    define('UPLOAD_PATH', !empty($_SERVER['DOCUMENT_ROOT'])
+        ? rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/uploads/'
+        : __DIR__ . '/../worldcred.com.br/uploads/');
 } else {
     define('BASE_URL', 'http://localhost:8080/');
     define('UPLOAD_PATH', __DIR__ . '/../public_html/uploads/');
