@@ -13,27 +13,6 @@ jobs:
       - name: Instalar lftp
         run: sudo apt-get install -y lftp
 
-      - name: Verificar arquivos locais
-        run: |
-          echo "=== functions.php local ==="
-          wc -c includes/functions.php
-          grep -n "gerarHashArquivo.*jpg\|@chmod" includes/functions.php
-
-      - name: Force upload arquivos críticos (curl)
-        env:
-          FTP_HOST: ${{ secrets.FTP_HOST }}
-          FTP_USER: ${{ secrets.FTP_USER }}
-          FTP_PASS: ${{ secrets.FTP_PASS }}
-        run: |
-          curl -v --ftp-pasv --insecure \
-            --user "$FTP_USER:$FTP_PASS" \
-            -T includes/functions.php \
-            "ftp://$FTP_HOST/includes/functions.php"
-          curl -v --ftp-pasv --insecure \
-            --user "$FTP_USER:$FTP_PASS" \
-            -T includes/config.php \
-            "ftp://$FTP_HOST/includes/config.php"
-
       - name: Deploy via lftp
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
