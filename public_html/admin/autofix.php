@@ -1,77 +1,79 @@
 <?php
-// Token de uso único — acesso sem login (apagar após usar)
-if (($_GET['token'] ?? '') !== 'reimotors2026fix') {
-    http_response_code(403);
-    die('Acesso negado');
-}
-
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+if (($_GET['token'] ?? '') !== 'reimotors2026fix') { http_response_code(403); die('Acesso negado'); }
+ini_set('display_errors', 1); error_reporting(E_ALL);
 header('Content-Type: text/plain; charset=utf-8');
 
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/db.php';
-require_once __DIR__ . '/../../includes/functions.php';
 
-echo "=== AUTOFIX Rei Motors ===\n\n";
+echo "=== DIAGNÓSTICO DE PATHS ===\n\n";
+echo "__FILE__: " . __FILE__ . "\n";
+echo "__DIR__: " . __DIR__ . "\n";
+echo "DOCUMENT_ROOT: " . ($_SERVER['DOCUMENT_ROOT'] ?? 'nao definido') . "\n";
+echo "SCRIPT_FILENAME: " . ($_SERVER['SCRIPT_FILENAME'] ?? 'nao definido') . "\n\n";
+
+echo "BASE_URL: " . BASE_URL . "\n";
 echo "UPLOAD_PATH: " . UPLOAD_PATH . "\n";
-echo "Pasta veiculos/: " . (is_dir(UPLOAD_PATH . 'veiculos/') ? "OK" : "NAO EXISTE") . "\n";
-echo "Gravavel: " . (is_writable(UPLOAD_PATH . 'veiculos/') ? "SIM" : "NAO") . "\n\n";
+echo "UPLOAD_PATH realpath: " . realpath(UPLOAD_PATH) . "\n\n";
 
-// 1. Limpar entradas do banco onde arquivo não existe
-echo "--- LIMPEZA DO BANCO ---\n";
-$fotos = obterTodas("SELECT vf.id, vf.caminho, vf.veiculo_id FROM veiculos_fotos vf ORDER BY vf.id");
-$deletadas = 0;
-$ok = 0;
-foreach ($fotos as $f) {
-    $arquivo = UPLOAD_PATH . $f['caminho'];
-    if (file_exists($arquivo)) {
-        echo "OK   [{$f['id']}] {$f['caminho']}\n";
-        $ok++;
-    } else {
-        executarQuery("DELETE FROM veiculos_fotos WHERE id = ?", [$f['id']]);
-        echo "DEL  [{$f['id']}] {$f['caminho']} (arquivo inexistente)\n";
-        $deletadas++;
-    }
-}
-echo "\nTotal: $ok OK, $deletadas deletadas do banco\n\n";
+// Descobrir o caminho real do web root
+$doc_root = $_SERVER['DOCUMENT_ROOT'] ?? '';
+echo "=== TESTAR UPLOAD_PATH CORRETO ===\n";
 
-// 2. Criar arquivo de teste para verificar se upload e acesso estão funcionando
-echo "--- TESTE DE UPLOAD ---\n";
-$test_nome = 'teste_autofix_' . time() . '.jpg';
-$test_path = UPLOAD_PATH . 'veiculos/' . $test_nome;
-$test_url  = BASE_URL . 'uploads/veiculos/' . $test_nome;
+// Onde os uploads precisam estar para ser acessíveis via URL
+$esperado_via_url = $doc_root . '/uploads/veiculos/';
+echo "Uploads esperado pelo Apache: $esperado_via_url\n";
+echo "Existe: " . (is_dir($esperado_via_url) ? "SIM" : "NAO") . "\n\n";
 
-// Cria uma imagem JPEG 1x1 pixel
-$img = imagecreatetruecolor(100, 100);
-$cor = imagecolorallocate($img, 220, 50, 50);
-imagefill($img, 0, 0, $cor);
-$escrita = imagejpeg($img, $test_path, 85);
+// Teste com o DOCUMENT_ROOT real
+$test_nome = 'teste_' . time() . '.jpg';
+
+// Teste 1: gravar no UPLOAD_PATH atual
+$path1 = UPLOAD_PATH . 'veiculos/' . $test_nome;
+$url1  = BASE_URL . 'uploads/veiculos/' . $test_nome;
+$img = imagecreatetruecolor(10, 10);
+imagejpeg($img, $path1, 80);
 imagedestroy($img);
+@chmod($path1, 0644);
+$h1 = @get_headers($url1);
+$status1 = $h1 ? $h1[0] : 'sem resposta';
+echo "Teste UPLOAD_PATH atual:\n";
+echo "  Arquivo: $path1\n";
+echo "  URL: $url1\n";
+echo "  HTTP: $status1\n";
+if (file_exists($path1)) @unlink($path1);
 
-if ($escrita && file_exists($test_path)) {
-    @chmod($test_path, 0644);
-    $perms = substr(sprintf('%o', fileperms($test_path)), -4);
-    echo "Arquivo criado: $test_path\n";
-    echo "Permissoes: $perms\n";
-    echo "URL de acesso: $test_url\n\n";
-
-    // Testa acesso via HTTP
-    $ctx = stream_context_create(['http' => ['timeout' => 10]]);
-    $headers = @get_headers($test_url, true, $ctx);
-    if ($headers && str_contains($headers[0], '200')) {
-        echo "ACESSO HTTP: OK (200) - imagem acessivel!\n";
-    } else {
-        $status = $headers ? $headers[0] : 'sem resposta';
-        echo "ACESSO HTTP: FALHOU ($status)\n";
-        echo "URL testada: $test_url\n";
-    }
-
-    // Remove o arquivo de teste
-    @unlink($test_path);
-    echo "Arquivo de teste removido.\n";
+// Teste 2: gravar no DOCUMENT_ROOT/uploads/veiculos/
+echo "\nTeste DOCUMENT_ROOT/uploads/veiculos/:\n";
+if ($doc_root && is_dir($doc_root . '/uploads/')) {
+    $path2 = $doc_root . '/uploads/veiculos/' . $test_nome;
+    if (!is_dir($doc_root . '/uploads/veiculos/')) mkdir($doc_root . '/uploads/veiculos/', 0755, true);
+    $img = imagecreatetruecolor(10, 10);
+    imagejpeg($img, $path2, 80);
+    imagedestroy($img);
+    @chmod($path2, 0644);
+    $h2 = @get_headers($url1); // mesma URL
+    $status2 = $h2 ? $h2[0] : 'sem resposta';
+    echo "  Arquivo: $path2\n";
+    echo "  HTTP: $status2\n";
+    if (file_exists($path2)) @unlink($path2);
 } else {
-    echo "ERRO: nao foi possivel criar o arquivo de teste em $test_path\n";
+    echo "  DOCUMENT_ROOT/uploads/ nao existe\n";
 }
+
+// Permissões dos diretórios
+echo "\n=== PERMISSÕES ===\n";
+foreach ([UPLOAD_PATH, UPLOAD_PATH . 'veiculos/', $doc_root . '/uploads/'] as $dir) {
+    if (is_dir($dir)) {
+        $p = substr(sprintf('%o', fileperms($dir)), -4);
+        echo "$dir → $p\n";
+    } else {
+        echo "$dir → NAO EXISTE\n";
+    }
+}
+
+// Htaccess em uploads/
+$hta = UPLOAD_PATH . '.htaccess';
+echo "\nUPLOAD_PATH/.htaccess: " . (file_exists($hta) ? file_get_contents($hta) : "nao existe") . "\n";
 
 echo "\n=== FIM ===\n";
