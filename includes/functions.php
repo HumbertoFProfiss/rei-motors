@@ -141,6 +141,7 @@ function uploadImagem($arquivo, $pasta = '') {
     $pasta_completa = UPLOAD_PATH . $pasta;
     if (!is_dir($pasta_completa)) {
         mkdir($pasta_completa, 0755, true);
+        @chmod($pasta_completa, 0755);
     }
     
     // Sempre salva como .jpg — otimizarImagem() converte tudo para JPEG
@@ -162,6 +163,8 @@ function uploadImagem($arquivo, $pasta = '') {
     } else {
         @unlink($tmp_path);
     }
+
+    @chmod($caminho_completo, 0644);
 
     return [
         'sucesso' => true,
