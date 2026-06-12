@@ -460,8 +460,11 @@ require_once __DIR__ . '/../includes/header.php';
             if (n.startsWith(t) || t.startsWith(n)) return {item: item, score: 1};
             if (n.includes(t) || t.includes(n)) return {item: item, score: 2};
             var partes = t.split(/\s+/).filter(function(p){ return p.length > 2; });
-            if (partes.length && partes.every(function(p){ return n.includes(p); })) return {item: item, score: 3};
-            if (partes.length && partes.some(function(p){ return n.includes(p); })) return {item: item, score: 4};
+            if (partes.length) {
+                var matched = partes.filter(function(p){ return n.includes(p); }).length;
+                if (matched === partes.length) return {item: item, score: 3};
+                if (matched > 0) return {item: item, score: 4 + (partes.length - matched) / partes.length};
+            }
             var d = lev(t, n);
             var maxDist = Math.max(2, Math.floor(t.length * 0.45));
             return {item: item, score: d <= maxDist ? 5 + d : 999};
@@ -500,7 +503,7 @@ require_once __DIR__ . '/../includes/header.php';
             .then(function(data) {
                 var modelos = data.modelos || data;
                 if (!Array.isArray(modelos)) throw new Error('Erro ao buscar modelos');
-                var candidatos = melhoresMatches(modelos, modelo, 'nome', 15);
+                var candidatos = melhoresMatches(modelos, modelo, 'nome', 20);
                 if (!candidatos.length) throw new Error('Modelo "' + modelo + '" não encontrado para ' + marcaObj.nome);
                 spanRef.textContent = '✓ ' + marcaObj.nome + ' — verificando anos disponíveis...';
 
