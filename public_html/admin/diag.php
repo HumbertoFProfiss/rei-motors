@@ -22,8 +22,16 @@ require_once __DIR__ . '/../../includes/db.php';
 echo "Conexao: OK\n\n";
 
 echo "=== functions.php ===\n";
-require_once __DIR__ . '/../../includes/functions.php';
-echo "Fix .jpg: " . (strpos(file_get_contents(__DIR__ . '/../../includes/functions.php'), "gerarHashArquivo() . '.jpg'") !== false ? "PRESENTE" : "AUSENTE") . "\n";
-echo "chmod fix: " . (strpos(file_get_contents(__DIR__ . '/../../includes/functions.php'), '@chmod($caminho_completo') !== false ? "PRESENTE" : "AUSENTE") . "\n";
+$fn_path = __DIR__ . '/../../includes/functions.php';
+$fn_content = file_get_contents($fn_path);
+echo "Fix .jpg: " . (strpos($fn_content, "gerarHashArquivo() . '.jpg'") !== false ? "PRESENTE" : "AUSENTE") . "\n";
+echo "chmod fix: " . (strpos($fn_content, '@chmod($caminho_completo') !== false ? "PRESENTE" : "AUSENTE") . "\n";
+echo "Tamanho functions.php: " . strlen($fn_content) . " bytes\n";
+echo "Linha 145-170 do functions.php:\n";
+$lines = explode("\n", $fn_content);
+for ($i = 144; $i < min(170, count($lines)); $i++) {
+    echo ($i+1) . ": " . $lines[$i] . "\n";
+}
+require_once $fn_path;
 
 echo "\n=== FIM — sem erros ===\n";

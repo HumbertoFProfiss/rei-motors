@@ -25,16 +25,18 @@ jobs:
           set net:max-retries 3
           set ssl:verify-certificate no
 
+          # Força upload dos arquivos críticos (sobrescreve independente de timestamp)
+          put -O includes/ includes/config.php
+          put -O includes/ includes/functions.php
+
           # Deploy includes/ (excluindo credenciais que só existem no servidor)
           mirror --reverse --verbose --no-empty-dirs --parallel=3 \
-            --ignore-time \
             --exclude-glob db.php \
             --exclude-glob secrets.php \
             includes/ includes/
 
           # Deploy public_html/ diretamente na raiz do servidor (onde o site roda)
           mirror --reverse --verbose --no-empty-dirs --parallel=3 \
-            --ignore-time \
             --exclude-glob .gitkeep \
             public_html/ ./
 
