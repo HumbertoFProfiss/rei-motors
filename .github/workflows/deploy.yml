@@ -54,7 +54,6 @@ jobs:
 
           # Deploy public_html/ diretamente na raiz do servidor (onde o site roda)
           mirror --reverse --verbose --no-empty-dirs --parallel=3 \
-            --transfer-all \
             --exclude-glob .gitkeep \
             public_html/ ./
 
