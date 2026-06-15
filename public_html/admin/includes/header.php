@@ -26,6 +26,7 @@ $_inicial = mb_strtoupper(mb_substr($_usuario['nome'], 0, 1, 'UTF-8'), 'UTF-8');
     <title><?= htmlspecialchars($titulo_pagina) ?> — Rei Motors Admin</title>
     <meta name="robots" content="noindex,nofollow">
     <meta name="csrf-token" content="<?= htmlspecialchars(gerarTokenCSRF()) ?>">
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>uploads/favicon.png">
     <link rel="stylesheet" href="<?= $admin_root ?>assets/css/admin.css">
 </head>
 <body>
