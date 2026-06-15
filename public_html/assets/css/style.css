@@ -257,11 +257,17 @@ section {
 
 .card__acoes {
     display: flex;
-    gap: var(--spacing-md);
+    gap: var(--spacing-xs);
+    align-items: center;
 }
 
 .card__acoes .btn {
     flex: 1;
+    min-width: 0;
+    padding: 0.375rem 0.75rem;
+    font-size: var(--font-size-xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Small Card */
@@ -572,6 +578,7 @@ section {
     transition: all 0.2s;
     color: var(--color-text-secondary);
     line-height: 1;
+    flex-shrink: 0;
 }
 .btn-fav:hover,
 .btn-fav.ativo {

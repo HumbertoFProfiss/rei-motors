@@ -530,7 +530,7 @@ require_once __DIR__ . '/../includes/header.php';
                         var v = preco.Valor.replace(/R\$\s?/, '').replace(/\./g, '').replace(',', '.');
                         inputFipe.value = parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
                         spanRef.style.color = '#22c55e';
-                        spanRef.textContent = '✓ ' + marcaObj.nome + ' ' + modeloObj.nome + ' ' + anoObj.nome + ' — Ref: ' + (preco.MesReferencia || '');
+                        spanRef.textContent = '✓ ' + (preco.Modelo || modeloObj.nome) + ' (' + anoObj.nome + ') — tabela FIPE de ' + (preco.MesReferencia || 'mês atual');
                     });
                 });
             });
