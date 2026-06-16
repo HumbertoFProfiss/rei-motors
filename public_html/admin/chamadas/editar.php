@@ -32,8 +32,11 @@ if (!empty($d['data_chamada'])) {
     $d['data_chamada'] = date('Y-m-d\TH:i', strtotime($d['data_chamada']));
 }
 
-$clientes   = obterTodas("SELECT id, nome, telefone FROM clientes ORDER BY nome");
-$vendedores = obterTodas("SELECT id, nome FROM usuarios WHERE ativo = 1 ORDER BY nome");
+$clientes      = obterTodas("SELECT id, nome, telefone FROM clientes ORDER BY nome");
+$vendedores    = obterTodas("SELECT id, nome FROM usuarios WHERE ativo = 1 ORDER BY nome");
+$veiculos_disp = obterTodas("SELECT id, marca, modelo, ano, preco_venda FROM veiculos WHERE status = 'disponivel' ORDER BY marca, modelo, ano");
+$marcas_disp   = array_values(array_unique(array_column($veiculos_disp, 'marca')));
+sort($marcas_disp);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['cliente_id']       = (int)($_POST['cliente_id'] ?? 0) ?: null;
@@ -45,6 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['descricao']        = sanitizar($_POST['descricao'] ?? '');
     $d['resultado']        = in_array($_POST['resultado'] ?? '', ['sem_resposta','interesse','proposta_enviada','fechado','desistiu']) ? $_POST['resultado'] : 'interesse';
     $d['data_chamada']     = sanitizar($_POST['data_chamada'] ?? date('Y-m-d H:i:s'));
+    $d['veiculo_id']       = (int)($_POST['veiculo_id'] ?? 0) ?: null;
 
     if (empty($d['descricao']) && empty($d['nome_contato'])) {
         $erros[] = 'Informe ao menos o nome do contato ou uma descrição.';
@@ -56,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'nome_contato'     => $d['nome_contato'],
             'telefone_contato' => $d['telefone_contato'],
             'intencao'         => $d['intencao'],
+            'veiculo_id'       => $d['veiculo_id'],
             'usuario_id'       => $d['usuario_id'],
             'tipo'             => $d['tipo'],
             'descricao'        => $d['descricao'],
@@ -129,6 +134,36 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <div class="form-section">
+        <div class="form-section__titulo">🚗 Veículo de Interesse (opcional)</div>
+        <div class="form-section__body">
+            <div class="form-grid">
+                <div class="form-grupo">
+                    <label>Filtrar por Marca</label>
+                    <select id="filtraMarcaChamada" onchange="filtrarVeiculosChamada()">
+                        <option value="">— Todas as marcas —</option>
+                        <?php foreach ($marcas_disp as $m): ?>
+                        <option value="<?= htmlspecialchars($m) ?>"><?= htmlspecialchars($m) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-grupo">
+                    <label>Veículo Disponível em Estoque</label>
+                    <select name="veiculo_id" id="selectVeiculoChamada">
+                        <option value="">Sem veículo específico</option>
+                        <?php foreach ($veiculos_disp as $v): ?>
+                        <option value="<?= $v['id'] ?>" data-marca="<?= htmlspecialchars($v['marca']) ?>"
+                                <?= (int)($d['veiculo_id'] ?? 0) === (int)$v['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($v['marca'] . ' ' . $v['modelo'] . ' ' . $v['ano']) ?> — <?= formatarMoeda($v['preco_venda']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <span class="form-grupo__hint">Selecione apenas se o cliente quer um carro específico do estoque</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-section">
         <div class="form-section__titulo">📞 Detalhes do Contato</div>
         <div class="form-section__body">
             <div class="form-grid">
@@ -180,5 +215,30 @@ require_once __DIR__ . '/../includes/header.php';
         <button type="submit" class="btn-admin btn-admin--primary">Salvar Alterações</button>
     </div>
 </form>
+
+<script>
+function filtrarVeiculosChamada() {
+    var marca = document.getElementById('filtraMarcaChamada').value;
+    var sel = document.getElementById('selectVeiculoChamada');
+    sel.querySelectorAll('option[data-marca]').forEach(function(opt) {
+        opt.style.display = (!marca || opt.dataset.marca === marca) ? '' : 'none';
+    });
+    if (sel.value && marca) {
+        var cur = sel.options[sel.selectedIndex];
+        if (cur && cur.dataset.marca && cur.dataset.marca !== marca) sel.value = '';
+    }
+}
+// Restaura o filtro de marca ao carregar (quando há veículo já salvo)
+(function() {
+    var sel = document.getElementById('selectVeiculoChamada');
+    if (sel && sel.value) {
+        var cur = sel.options[sel.selectedIndex];
+        if (cur && cur.dataset.marca) {
+            document.getElementById('filtraMarcaChamada').value = cur.dataset.marca;
+            filtrarVeiculosChamada();
+        }
+    }
+})();
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

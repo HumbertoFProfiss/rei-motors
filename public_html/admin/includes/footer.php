@@ -14,6 +14,11 @@
     </div>
 </div>
 
+<p style="text-align:center;font-size:0.7rem;color:#444;padding:12px 0 4px">
+    Desenvolvido por <a href="https://rstechbr.com" target="_blank" rel="noopener"
+    style="color:#D4AF37;text-decoration:none;font-weight:600">RS TECH</a>
+</p>
+
 <script src="<?= $admin_root ?>assets/js/admin.js"></script>
 <script>
 // Injeta CSRF token automaticamente em todos os formulários POST do admin

@@ -247,11 +247,6 @@ $csrf_token = gerarTokenCSRF();
                     <div class="veiculo__preco-box">
                         <p class="veiculo__preco-label">Preço de venda</p>
                         <p class="veiculo__preco-valor"><?php echo formatarMoeda($veiculo['preco_venda']); ?></p>
-                        <?php if ($veiculo['preco_tabela_fipe']): ?>
-                            <p class="veiculo__fipe">
-                                Tabela FIPE: <span><?php echo formatarMoeda($veiculo['preco_tabela_fipe']); ?></span>
-                            </p>
-                        <?php endif; ?>
                     </div>
 
                     <!-- CTAs -->

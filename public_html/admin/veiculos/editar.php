@@ -461,7 +461,10 @@ require_once __DIR__ . '/../includes/header.php';
             if (n.includes(t) || t.includes(n)) return {item: item, score: 2};
             var partes = t.split(/\s+/).filter(function(p){ return p.length > 2; });
             if (partes.length) {
-                var matched = partes.filter(function(p){ return n.includes(p); }).length;
+                var matched = partes.filter(function(p) {
+                    if (n.includes(p)) return true;
+                    return n.split(/\s+/).some(function(w) { return w.length > 1 && p.startsWith(w); });
+                }).length;
                 if (matched === partes.length) return {item: item, score: 3};
                 if (matched > 0) return {item: item, score: 4 + (partes.length - matched) / partes.length};
             }
@@ -694,7 +697,11 @@ require_once __DIR__ . '/../includes/header.php';
     inputVenda.addEventListener('blur', function () {
         if (document.querySelector('input[name="tipo_propriedade"]:checked').value === 'consignado') recalcularResumo();
     });
+    inputVenda.addEventListener('input', function () {
+        if (document.querySelector('input[name="tipo_propriedade"]:checked').value === 'consignado') recalcularResumo();
+    });
     inputValorMin.addEventListener('blur', recalcularResumo);
+    inputValorMin.addEventListener('input', recalcularResumo);
     inputPerc.addEventListener('blur', recalcularPorPerc);
 
     atualizarModo();
