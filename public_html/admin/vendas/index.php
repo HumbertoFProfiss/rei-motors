@@ -83,6 +83,16 @@ $totais = obterUmaLinha(
     $params
 );
 
+// Veículos reservados/vendidos sem registro de venda
+$sem_registro = obterTodas(
+    "SELECT v.id, v.marca, v.modelo, v.ano, v.preco_venda, v.status
+     FROM veiculos v
+     LEFT JOIN vendas ve ON ve.veiculo_id = v.id
+     WHERE v.status IN ('reservado','vendido') AND ve.id IS NULL
+     ORDER BY v.status DESC, v.marca, v.modelo",
+    []
+);
+
 $msg = trim($_GET['msg'] ?? '');
 
 require_once __DIR__ . '/../includes/header.php';
@@ -119,6 +129,26 @@ require_once __DIR__ . '/../includes/header.php';
         <p class="stat-card__valor" style="font-size:1.3rem"><?= formatarMoeda($totais['comissao']) ?></p>
         <p class="stat-card__sub">a pagar vendedores</p>
     </div>
+</div>
+<?php endif; ?>
+
+<?php if ($sem_registro): ?>
+<div class="alert-admin alert-admin--warning" style="margin-bottom:16px">
+    ⚠️ <?= count($sem_registro) ?> veículo(s) com status <strong>reservado/vendido</strong> sem registro de venda:
+    <table class="table" style="margin-top:10px">
+        <thead><tr><th>Veículo</th><th>Ano</th><th>Preço</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        <?php foreach ($sem_registro as $sr): ?>
+        <tr>
+            <td><?= htmlspecialchars($sr['marca'] . ' ' . $sr['modelo']) ?></td>
+            <td><?= $sr['ano'] ?></td>
+            <td><?= formatarMoeda($sr['preco_venda']) ?></td>
+            <td><span class="badge-admin badge-admin--<?= $sr['status'] ?>"><?= ucfirst($sr['status']) ?></span></td>
+            <td><a href="nova.php?veiculo_id=<?= $sr['id'] ?>" class="btn-admin btn-admin--primary btn-admin--sm">+ Registrar Venda</a></td>
+        </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
 </div>
 <?php endif; ?>
 

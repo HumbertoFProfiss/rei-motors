@@ -15,7 +15,7 @@ $breadcrumb    = [
 
 $erros = [];
 $d = [
-    'veiculo_id' => '', 'cliente_id' => '', 'vendedor_id' => $_SESSION['usuario_id'],
+    'veiculo_id' => (int)($_GET['veiculo_id'] ?? 0) ?: '', 'cliente_id' => '', 'vendedor_id' => $_SESSION['usuario_id'],
     'forma_pagamento' => 'avista', 'preco_venda' => '', 'desconto_aplicado' => '0',
     'valor_troca' => '0', 'data_venda' => date('Y-m-d'), 'data_entrega' => '',
     'status' => 'pendente', 'numero_contrato' => '', 'observacoes' => '',
@@ -32,7 +32,11 @@ $formas_pagamento = [
 
 // Listas para selects
 $veiculos_disponiveis = obterTodas(
-    "SELECT id, marca, modelo, ano, preco_venda, tipo_propriedade, consignado_valor_minimo, consignado_proprietario_nome FROM veiculos WHERE status IN ('disponivel','reservado') ORDER BY marca, modelo"
+    "SELECT id, marca, modelo, ano, preco_venda, status, tipo_propriedade, consignado_valor_minimo, consignado_proprietario_nome
+     FROM veiculos
+     WHERE status IN ('disponivel','reservado')
+        OR (status = 'vendido' AND id NOT IN (SELECT COALESCE(veiculo_id,0) FROM vendas))
+     ORDER BY marca, modelo"
 );
 $clientes_lista = obterTodas("SELECT id, nome, cpf FROM clientes ORDER BY nome");
 $vendedores     = obterTodas("SELECT id, nome FROM usuarios WHERE ativo = 1 ORDER BY nome");

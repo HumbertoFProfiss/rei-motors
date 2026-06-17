@@ -15,16 +15,19 @@ $breadcrumb    = [
 
 $erros = [];
 $d = [
-    'cliente_id'      => '',
-    'nome_contato'    => '',
-    'telefone_contato'=> '',
-    'intencao'        => '',
-    'veiculo_id'      => null,
-    'usuario_id'      => $_SESSION['usuario_id'],
-    'tipo'            => 'ligacao',
-    'descricao'       => '',
-    'resultado'       => 'interesse',
-    'data_chamada'    => date('Y-m-d\TH:i'),
+    'cliente_id'       => '',
+    'nome_contato'     => '',
+    'telefone_contato' => '',
+    'intencao'         => '',
+    'veiculo_id'       => null,
+    'marca_interesse'  => '',
+    'modelo_interesse' => '',
+    'ano_interesse'    => '',
+    'usuario_id'       => $_SESSION['usuario_id'],
+    'tipo'             => 'ligacao',
+    'descricao'        => '',
+    'resultado'        => 'interesse',
+    'data_chamada'     => date('Y-m-d\TH:i'),
 ];
 
 $clientes      = obterTodas("SELECT id, nome, telefone FROM clientes ORDER BY nome");
@@ -44,6 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['resultado']        = in_array($_POST['resultado'] ?? '', ['sem_resposta','interesse','proposta_enviada','fechado','desistiu']) ? $_POST['resultado'] : 'interesse';
     $d['data_chamada']     = sanitizar($_POST['data_chamada'] ?? date('Y-m-d H:i:s'));
     $d['veiculo_id']       = (int)($_POST['veiculo_id'] ?? 0) ?: null;
+    $d['marca_interesse']  = sanitizar($_POST['marca_interesse']  ?? '') ?: null;
+    $d['modelo_interesse'] = sanitizar($_POST['modelo_interesse'] ?? '') ?: null;
+    $d['ano_interesse']    = (int)($_POST['ano_interesse'] ?? 0) ?: null;
 
     if (empty($d['descricao']) && empty($d['nome_contato'])) $erros[] = 'Informe ao menos o nome do contato ou uma descrição.';
 
@@ -129,18 +135,27 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="form-section__body">
             <div class="form-grid">
                 <div class="form-grupo">
-                    <label>Filtrar por Marca</label>
-                    <select id="filtraMarcaChamada" onchange="filtrarVeiculosChamada()">
-                        <option value="">— Todas as marcas —</option>
-                        <?php foreach ($marcas_disp as $m): ?>
-                        <option value="<?= htmlspecialchars($m) ?>"><?= htmlspecialchars($m) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                    <label>Marca Desejada</label>
+                    <input type="text" name="marca_interesse"
+                           value="<?= htmlspecialchars($d['marca_interesse']) ?>"
+                           placeholder="Ex: Mitsubishi, Volkswagen, Toyota…">
                 </div>
                 <div class="form-grupo">
-                    <label>Veículo Disponível em Estoque</label>
+                    <label>Modelo Desejado</label>
+                    <input type="text" name="modelo_interesse"
+                           value="<?= htmlspecialchars($d['modelo_interesse']) ?>"
+                           placeholder="Ex: Lancer, Gol, Corolla…">
+                </div>
+                <div class="form-grupo">
+                    <label>Ano Desejado</label>
+                    <input type="number" name="ano_interesse"
+                           value="<?= htmlspecialchars($d['ano_interesse']) ?>"
+                           placeholder="Ex: 2024" min="1990" max="2035" style="max-width:140px">
+                </div>
+                <div class="form-grupo">
+                    <label>Tem no Estoque? (opcional)</label>
                     <select name="veiculo_id" id="selectVeiculoChamada">
-                        <option value="">Sem veículo específico</option>
+                        <option value="">— Nenhum específico —</option>
                         <?php foreach ($veiculos_disp as $v): ?>
                         <option value="<?= $v['id'] ?>" data-marca="<?= htmlspecialchars($v['marca']) ?>"
                                 <?= (int)($d['veiculo_id'] ?? 0) === (int)$v['id'] ? 'selected' : '' ?>>
@@ -148,7 +163,7 @@ require_once __DIR__ . '/../includes/header.php';
                         </option>
                         <?php endforeach; ?>
                     </select>
-                    <span class="form-grupo__hint">Selecione apenas se o cliente quer um carro específico do estoque</span>
+                    <span class="form-grupo__hint">Vincule se o carro que o cliente quer já está no estoque</span>
                 </div>
             </div>
         </div>
