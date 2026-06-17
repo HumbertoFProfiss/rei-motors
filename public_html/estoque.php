@@ -537,6 +537,10 @@ if ($filtros['marca']) $titulo_pagina = 'Carros ' . $filtros['marca'];
             </div>
             <div class="footer__bottom">
                 <p>&copy; <?php echo date('Y'); ?> <?php echo LOJA_NOME; ?> - Todos os direitos reservados</p>
+                <p style="font-size:0.75rem;color:#888;margin-top:6px">
+                    Site desenvolvido por <a href="https://rstechbr.com" target="_blank" rel="noopener"
+                    style="color:#D4AF37;text-decoration:none;font-weight:600">RS TECH</a>
+                </p>
             </div>
         </div>
     </footer>
