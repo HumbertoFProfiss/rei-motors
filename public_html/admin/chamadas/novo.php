@@ -135,21 +135,22 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="form-section__body">
             <div class="form-grid">
                 <div class="form-grupo">
-                    <label>Marca Desejada</label>
-                    <input type="text" name="marca_interesse"
-                           value="<?= htmlspecialchars($d['marca_interesse']) ?>"
-                           placeholder="Ex: Mitsubishi, Volkswagen, Toyota…">
+                    <label>Marca</label>
+                    <select name="marca_interesse" id="selMarcaInteresse" onchange="filtrarModelosInteresse()">
+                        <option value="">— Selecione a marca —</option>
+                    </select>
                 </div>
                 <div class="form-grupo">
-                    <label>Modelo Desejado</label>
-                    <input type="text" name="modelo_interesse"
-                           value="<?= htmlspecialchars($d['modelo_interesse']) ?>"
-                           placeholder="Ex: Lancer, Gol, Corolla…">
+                    <label>Modelo</label>
+                    <select name="modelo_interesse" id="selModeloInteresse">
+                        <option value="">— Selecione o modelo —</option>
+                    </select>
                 </div>
                 <div class="form-grupo">
-                    <label>Ano Desejado</label>
+                    <label>Ano</label>
                     <input type="number" name="ano_interesse"
-                           value="<?= htmlspecialchars($d['ano_interesse']) ?>"
+                           id="inputAnoInteresse"
+                           value="<?= htmlspecialchars($d['ano_interesse'] ?? '') ?>"
                            placeholder="Ex: 2024" min="1990" max="2035" style="max-width:140px">
                 </div>
                 <div class="form-grupo">
@@ -157,7 +158,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <select name="veiculo_id" id="selectVeiculoChamada">
                         <option value="">— Nenhum específico —</option>
                         <?php foreach ($veiculos_disp as $v): ?>
-                        <option value="<?= $v['id'] ?>" data-marca="<?= htmlspecialchars($v['marca']) ?>"
+                        <option value="<?= $v['id'] ?>"
                                 <?= (int)($d['veiculo_id'] ?? 0) === (int)$v['id'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($v['marca'] . ' ' . $v['modelo'] . ' ' . $v['ano']) ?> — <?= formatarMoeda($v['preco_venda']) ?>
                         </option>
@@ -223,6 +224,77 @@ require_once __DIR__ . '/../includes/header.php';
 </form>
 
 <script>
+var MARCAS_MODELOS = {
+    "Chevrolet":    ["Onix","Onix Plus","Tracker","Montana","S10","Spin","Cruze","Equinox","Trailblazer","Camaro","Blazer","Cobalt"],
+    "Volkswagen":   ["Gol","Polo","Virtus","T-Cross","Taos","Jetta","Tiguan","Amarok","Saveiro","Up","Golf","Nivus"],
+    "Fiat":         ["Argo","Cronos","Pulse","Fastback","Toro","Strada","Mobi","Ducato","500","Doblo","Uno","Bravo"],
+    "Toyota":       ["Corolla","Corolla Cross","Yaris","Hilux","SW4","RAV4","Camry","Etios","Prius","Land Cruiser"],
+    "Hyundai":      ["HB20","HB20S","Creta","Tucson","Santa Fe","Elantra","i30","Ioniq 5","Ioniq 6"],
+    "Renault":      ["Kwid","Sandero","Logan","Duster","Captur","Oroch","Kardian","Stepway","Clio","Megane"],
+    "Ford":         ["Ka","EcoSport","Ranger","Bronco","Mustang","Territory","Maverick","Edge","Explorer","F-150"],
+    "Honda":        ["Civic","City","City Hatch","HR-V","CR-V","WR-V","Fit","Accord","ZR-V"],
+    "Nissan":       ["Kicks","Frontier","Sentra","March","Versa","Leaf","Murano","Pathfinder"],
+    "Jeep":         ["Renegade","Compass","Commander","Wrangler","Gladiator","Cherokee","Grand Cherokee"],
+    "Mitsubishi":   ["L200","Eclipse Cross","Outlander","Pajero","Pajero Sport","ASX","Lancer","Galant"],
+    "Peugeot":      ["208","2008","3008","408","508","5008","Partner"],
+    "Citroën":      ["C3","C4","C4 Cactus","C5 Aircross","Berlingo","Jumper"],
+    "BMW":          ["320i","330i","530i","X1","X3","X4","X5","X6","M3","M5","Serie 1","Serie 2"],
+    "Mercedes-Benz":["A200","C180","C200","E300","GLA","GLB","GLC","GLE","GLS","Sprinter","AMG GT"],
+    "Audi":         ["A3","A4","A5","A6","Q3","Q5","Q7","Q8","TT","RS3","RS5"],
+    "Kia":          ["Sportage","Sorento","Stinger","Cerato","Carnival","Niro","Telluride","EV6","Picanto"],
+    "Land Rover":   ["Discovery","Discovery Sport","Range Rover","Range Rover Sport","Defender","Freelander","Evoque"],
+    "Volvo":        ["XC40","XC60","XC90","S60","S90","V60","V90","C40"],
+    "Dodge":        ["RAM 1500","RAM 2500","RAM 700","Durango","Challenger","Charger","Journey"],
+    "BYD":          ["Dolphin","Seal","Atto 3","Han","Yuan Plus","Tan","Song Plus","King"],
+    "GWM":          ["Haval H6","Haval H2","ORA 03","Poer","Wingle","Jolion"],
+    "Caoa Chery":   ["Tiggo 2","Tiggo 5x","Tiggo 7","Tiggo 8","Arrizo 6","iCar"],
+    "JAC":          ["T50","T60","T8","e-JS1","e-JS4"],
+    "Subaru":       ["Outback","Forester","Impreza","XV","WRX","BRZ","Levorg"],
+    "Suzuki":       ["Jimny","Swift","Vitara","S-Cross","Baleno"],
+    "Porsche":      ["911","Cayenne","Macan","Panamera","Taycan","718"],
+    "Ferrari":      ["F8","SF90","Roma","Portofino","812"],
+    "Lamborghini":  ["Huracan","Urus","Revuelto"],
+    "Outras":       ["Outro modelo"]
+};
+
+function preencherMarcasInteresse(marcaSel, modeloSel) {
+    marcaSel.innerHTML = '<option value="">— Selecione a marca —</option>';
+    Object.keys(MARCAS_MODELOS).forEach(function(m) {
+        var opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m;
+        marcaSel.appendChild(opt);
+    });
+    if (marcaSel.dataset.val) marcaSel.value = marcaSel.dataset.val;
+    filtrarModelosInteresse(marcaSel, modeloSel);
+}
+
+function filtrarModelosInteresse(marcaSel, modeloSel) {
+    marcaSel = marcaSel || document.getElementById('selMarcaInteresse');
+    modeloSel = modeloSel || document.getElementById('selModeloInteresse');
+    var marca = marcaSel.value;
+    var modelos = marca && MARCAS_MODELOS[marca] ? MARCAS_MODELOS[marca] : [];
+    modeloSel.innerHTML = '<option value="">— Selecione o modelo —</option>';
+    modelos.forEach(function(mo) {
+        var opt = document.createElement('option');
+        opt.value = mo;
+        opt.textContent = mo;
+        if (modeloSel.dataset.val === mo) opt.selected = true;
+        modeloSel.appendChild(opt);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var ms = document.getElementById('selMarcaInteresse');
+    var mo = document.getElementById('selModeloInteresse');
+    if (ms) {
+        ms.dataset.val = <?= json_encode($d['marca_interesse'] ?? '') ?>;
+        mo.dataset.val = <?= json_encode($d['modelo_interesse'] ?? '') ?>;
+        preencherMarcasInteresse(ms, mo);
+        ms.onchange = function() { filtrarModelosInteresse(ms, mo); };
+    }
+});
+
 function filtrarVeiculosChamada() {
     var marca = document.getElementById('filtraMarcaChamada').value;
     var sel = document.getElementById('selectVeiculoChamada');
