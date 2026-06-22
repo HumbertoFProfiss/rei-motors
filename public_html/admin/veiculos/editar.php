@@ -117,6 +117,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             inserir('veiculos_videos', ['veiculo_id' => $id, 'url_youtube' => $url_youtube]);
         }
 
+        // Se marcou como vendido e não tem venda registrada, redireciona para registrar
+        if ($d['status'] === 'vendido') {
+            $tem_venda = obterUmaLinha("SELECT id FROM vendas WHERE veiculo_id = ? LIMIT 1", [$id]);
+            if (!$tem_venda) {
+                header('Location: ' . ADMIN_URL . 'vendas/nova.php?veiculo_id=' . $id . '&msg=registre_venda');
+                exit;
+            }
+        }
+
         header('Location: ' . ADMIN_URL . 'veiculos/?msg=salvo');
         exit;
     }

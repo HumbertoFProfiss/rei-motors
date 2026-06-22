@@ -122,6 +122,12 @@ require_once __DIR__ . '/../includes/header.php';
 </div>
 <?php endif; ?>
 
+<?php if (($_GET['msg'] ?? '') === 'registre_venda'): ?>
+<div class="alert-admin alert-admin--warning">
+    ⚠️ Veículo marcado como vendido — preencha os dados da venda abaixo para registrá-la no sistema.
+</div>
+<?php endif; ?>
+
 <div class="page__header">
     <div>
         <h1 class="page__titulo">Nova Venda</h1>
