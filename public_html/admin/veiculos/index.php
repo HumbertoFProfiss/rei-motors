@@ -8,6 +8,25 @@ $pagina_ativa  = 'veiculos';
 $admin_root    = '../';
 $breadcrumb    = [['label' => 'Veículos', 'url' => '']];
 
+// Toggle destaque via AJAX
+if (isset($_GET['toggle_destaque'])) {
+    requerAutenticacao();
+    $id_td = (int)$_GET['toggle_destaque'];
+    if ($id_td > 0) {
+        $row = obterUmaLinha("SELECT destaque FROM veiculos WHERE id = ?", [$id_td]);
+        if ($row) {
+            $novo = $row['destaque'] ? 0 : 1;
+            atualizar('veiculos', ['destaque' => $novo], 'id = ?', [$id_td]);
+            header('Content-Type: application/json');
+            echo json_encode(['destaque' => $novo]);
+            exit;
+        }
+    }
+    header('Content-Type: application/json');
+    echo json_encode(['erro' => 'não encontrado']);
+    exit;
+}
+
 // Ação de exclusão (admin only)
 if (isset($_GET['deletar']) && ehAdmin()) {
     requerAutenticacao();
@@ -144,7 +163,13 @@ require_once __DIR__ . '/../includes/header.php';
             <td><?= $cambios[$v['cambio']] ?? $v['cambio'] ?></td>
             <td><span class="badge-admin badge-admin--<?= $v['status'] ?>">
                 <?= $status_veiculo[$v['status']] ?? $v['status'] ?></span></td>
-            <td><?= $v['destaque'] ? '<span class="badge-admin badge-admin--destaque">★</span>' : '—' ?></td>
+            <td>
+                <button onclick="toggleDestaque(this, <?= $v['id'] ?>)"
+                        class="btn-destaque <?= $v['destaque'] ? 'ativo' : '' ?>"
+                        title="<?= $v['destaque'] ? 'Em destaque — clique para remover' : 'Clique para destacar' ?>">
+                    <?= $v['destaque'] ? '★' : '☆' ?>
+                </button>
+            </td>
             <td class="td-acoes">
                 <a href="editar.php?id=<?= $v['id'] ?>" class="btn-admin btn-admin--secondary btn-admin--sm">Editar</a>
                 <a href="fotos.php?id=<?= $v['id'] ?>"  class="btn-admin btn-admin--secondary btn-admin--sm">Fotos</a>
@@ -193,5 +218,40 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
     <?php endif; ?>
 </div>
+
+<style>
+.btn-destaque {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: #555;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color .15s, transform .1s;
+    line-height: 1;
+}
+.btn-destaque:hover { color: #D4AF37; transform: scale(1.2); }
+.btn-destaque.ativo { color: #D4AF37; }
+.btn-destaque.carregando { opacity: .4; pointer-events: none; }
+</style>
+<script>
+function toggleDestaque(btn, id) {
+    btn.classList.add('carregando');
+    fetch('?toggle_destaque=' + id)
+        .then(function(r){ return r.json(); })
+        .then(function(data) {
+            btn.classList.remove('carregando');
+            if (data.destaque !== undefined) {
+                var ativo = data.destaque === 1;
+                btn.textContent = ativo ? '★' : '☆';
+                btn.title = ativo ? 'Em destaque — clique para remover' : 'Clique para destacar';
+                if (ativo) btn.classList.add('ativo');
+                else btn.classList.remove('ativo');
+            }
+        })
+        .catch(function(){ btn.classList.remove('carregando'); });
+}
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
