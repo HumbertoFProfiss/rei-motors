@@ -20,10 +20,11 @@ $d = [
     'venda_id'      => '',
     'tipo_problema' => '',
     'descricao'     => '',
-    'status'        => 'aberto',
-    'data_abertura' => date('Y-m-d'),
-    'custo_reparo'  => '',
-    'observacoes'   => '',
+    'status'         => 'aberto',
+    'data_abertura'  => date('Y-m-d'),
+    'data_resolucao' => '',
+    'custo_reparo'   => '',
+    'observacoes'    => '',
     'fornecedor'    => '',
     'peca_descricao'=> '',
     'custo_peca'    => 0,
@@ -39,8 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['venda_id']      = (int)($_POST['venda_id']      ?? 0) ?: null;
     $d['tipo_problema'] = sanitizar($_POST['tipo_problema'] ?? '');
     $d['descricao']     = sanitizar($_POST['descricao']     ?? '');
-    $d['status']        = 'aberto';
+    $status_validos     = ['aberto', 'em_andamento', 'resolvido', 'recusado'];
+    $d['status']        = in_array($_POST['status'] ?? '', $status_validos, true) ? $_POST['status'] : 'aberto';
     $d['data_abertura'] = sanitizar($_POST['data_abertura'] ?? date('Y-m-d'));
+    $d['data_resolucao'] = ($d['status'] === 'resolvido' && !empty($_POST['data_resolucao']))
+                          ? sanitizar($_POST['data_resolucao']) : null;
     $custo_raw          = trim($_POST['custo_reparo'] ?? '');
     $d['custo_reparo']  = $custo_raw !== '' ? (float)str_replace(['.', ','], ['', '.'], $custo_raw) : null;
     $d['observacoes']   = sanitizar($_POST['observacoes']   ?? '') ?: null;
@@ -59,7 +63,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($d['tipo_problema'])) $erros[] = 'Informe o tipo do problema.';
 
     if (empty($erros)) {
-        inserir('garantias_chamados', $d);
+        $novo_id = inserir('garantias_chamados', $d);
+
+        // Se criado já como resolvido com custo, transfere para custos do veículo e contas a pagar
+        if ($d['status'] === 'resolvido' && ($d['custo_reparo'] ?? 0) > 0 && $novo_id) {
+            $vei   = obterUmaLinha("SELECT marca, modelo, ano FROM veiculos WHERE id = ?", [$d['veiculo_id']]);
+            $descr = 'Garantia: ' . $d['tipo_problema']
+                   . ($vei ? ' — ' . $vei['marca'] . ' ' . $vei['modelo'] . ' ' . $vei['ano'] : '');
+            $data_ref = $d['data_resolucao'] ?? $d['data_abertura'];
+
+            inserir('custos_veiculo', [
+                'veiculo_id'   => $d['veiculo_id'],
+                'categoria'    => 'garantia',
+                'descricao'    => $descr,
+                'valor'        => $d['custo_reparo'],
+                'data_despesa' => $data_ref,
+            ]);
+
+            inserir('contas_pagar', [
+                'descricao'       => $descr,
+                'valor'           => $d['custo_reparo'],
+                'data_vencimento' => $data_ref,
+                'data_pagamento'  => $data_ref,
+                'categoria'       => 'garantia',
+                'status'          => 'paga',
+                'observacoes'     => 'Gerado automaticamente de garantias_chamados #' . $novo_id,
+            ]);
+        }
+
         header('Location: ' . ADMIN_URL . 'garantias/?msg=salvo');
         exit;
     }
@@ -111,6 +142,19 @@ require_once __DIR__ . '/../includes/header.php';
                 <div class="form-grupo">
                     <label>Data de Abertura</label>
                     <input type="date" name="data_abertura" value="<?= $d['data_abertura'] ?>">
+                </div>
+                <div class="form-grupo">
+                    <label>Status</label>
+                    <select name="status" id="statusChamado" onchange="toggleDataResolucao()">
+                        <option value="aberto"       <?= $d['status']==='aberto'       ?'selected':'' ?>>Aberto</option>
+                        <option value="em_andamento" <?= $d['status']==='em_andamento' ?'selected':'' ?>>Em Andamento</option>
+                        <option value="resolvido"    <?= $d['status']==='resolvido'    ?'selected':'' ?>>Resolvido</option>
+                        <option value="recusado"     <?= $d['status']==='recusado'     ?'selected':'' ?>>Recusado</option>
+                    </select>
+                </div>
+                <div class="form-grupo" id="campoDataResolucao" style="display:<?= $d['status']==='resolvido'?'block':'none' ?>">
+                    <label>Data de Resolução</label>
+                    <input type="date" name="data_resolucao" value="<?= htmlspecialchars($d['data_resolucao'] ?? '') ?>">
                 </div>
                 <div class="form-grupo form-grupo--2">
                     <label>Tipo / Título do Problema <span class="obrigatorio">*</span></label>
@@ -178,6 +222,10 @@ require_once __DIR__ . '/../includes/header.php';
 </form>
 
 <script>
+function toggleDataResolucao() {
+    var s = document.getElementById('statusChamado').value;
+    document.getElementById('campoDataResolucao').style.display = s === 'resolvido' ? 'block' : 'none';
+}
 function calcTotal() {
     var toFloat = function(s) {
         return parseFloat((s || '0').replace(/\./g,'').replace(',','.')) || 0;
