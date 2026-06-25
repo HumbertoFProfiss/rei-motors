@@ -10,71 +10,16 @@ $pagina_ativa  = 'anuncios';
 $admin_root    = '../';
 $breadcrumb    = [['label' => 'Anúncios', 'url' => '']];
 
-$portais_xml = ['webmotors', 'icarros', 'chavesnamao', 'mobautos', 'napista', 'carrossp'];
-$portais_csv = ['mercadolivre', 'facebook'];
-
 $portais = [
-    'webmotors'    => ['nome' => 'WebMotors',            'tipo' => 'xml', 'cor' => '#e03a3a'],
-    'icarros'      => ['nome' => 'iCarros',               'tipo' => 'xml', 'cor' => '#0066cc'],
-    'chavesnamao'  => ['nome' => 'Chaves na Mão',         'tipo' => 'xml', 'cor' => '#ff6600'],
-    'mobautos'     => ['nome' => 'MobAutos',              'tipo' => 'xml', 'cor' => '#00aa55'],
-    'napista'      => ['nome' => 'Na Pista',              'tipo' => 'xml', 'cor' => '#333399'],
-    'carrossp'     => ['nome' => 'Carros SP',             'tipo' => 'xml', 'cor' => '#cc0033'],
+    'webmotors'    => ['nome' => 'WebMotors',            'tipo' => 'csv', 'cor' => '#e03a3a'],
+    'icarros'      => ['nome' => 'iCarros',               'tipo' => 'csv', 'cor' => '#0066cc'],
+    'chavesnamao'  => ['nome' => 'Chaves na Mão',         'tipo' => 'csv', 'cor' => '#ff6600'],
+    'mobautos'     => ['nome' => 'MobAutos',              'tipo' => 'csv', 'cor' => '#00aa55'],
+    'napista'      => ['nome' => 'Na Pista',              'tipo' => 'csv', 'cor' => '#333399'],
+    'carrossp'     => ['nome' => 'Carros SP',             'tipo' => 'csv', 'cor' => '#cc0033'],
     'mercadolivre' => ['nome' => 'Mercado Livre',         'tipo' => 'csv', 'cor' => '#ffe600'],
     'facebook'     => ['nome' => 'Facebook Marketplace',  'tipo' => 'csv', 'cor' => '#1877f2'],
 ];
-
-// Exportar XML de um veículo específico
-if (isset($_GET['exportar_xml'])) {
-    $vid = (int)($_GET['veiculo_id'] ?? 0);
-
-    $where = $vid > 0
-        ? "WHERE v.status = 'disponivel' AND v.id = $vid"
-        : "WHERE v.status = 'disponivel'";
-
-    $veiculos_exp = obterTodas(
-        "SELECT v.*,
-                GROUP_CONCAT(DISTINCT vf.caminho ORDER BY vf.principal DESC, vf.ordem ASC SEPARATOR '|') AS fotos
-         FROM veiculos v
-         LEFT JOIN veiculos_fotos vf ON v.id = vf.veiculo_id
-         $where
-         GROUP BY v.id ORDER BY v.criado_em DESC"
-    );
-
-    $nome_arquivo = $vid > 0
-        ? 'anuncio_veiculo_' . $vid . '_' . date('Y-m-d') . '.xml'
-        : 'feed_reimotors_' . date('Y-m-d') . '.xml';
-
-    header('Content-Type: application/xml; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $nome_arquivo . '"');
-
-    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-    echo '<Vehicles>' . "\n";
-    foreach ($veiculos_exp as $v) {
-        $fotos = $v['fotos'] ? explode('|', $v['fotos']) : [];
-        echo "  <Vehicle>\n";
-        echo "    <UniqueId>" . $v['id'] . "</UniqueId>\n";
-        echo "    <Brand>" . htmlspecialchars($v['marca']) . "</Brand>\n";
-        echo "    <Model>" . htmlspecialchars($v['modelo']) . "</Model>\n";
-        echo "    <Version>" . htmlspecialchars($v['modelo']) . "</Version>\n";
-        echo "    <Year>" . $v['ano'] . "</Year>\n";
-        echo "    <Color>" . htmlspecialchars($v['cor'] ?? '') . "</Color>\n";
-        echo "    <Mileage>" . (int)$v['quilometragem'] . "</Mileage>\n";
-        echo "    <Fuel>" . htmlspecialchars($v['combustivel'] ?? '') . "</Fuel>\n";
-        echo "    <Transmission>" . htmlspecialchars($v['cambio'] ?? '') . "</Transmission>\n";
-        echo "    <Price>" . number_format((float)$v['preco_venda'], 2, '.', '') . "</Price>\n";
-        echo "    <Description>" . htmlspecialchars(strip_tags($v['descricao'] ?? '')) . "</Description>\n";
-        echo "    <ListingUrl>" . BASE_URL . 'veiculo.php?slug=' . htmlspecialchars($v['slug']) . "</ListingUrl>\n";
-        echo "    <Images>\n";
-        foreach ($fotos as $f) {
-            echo "      <Image>" . BASE_URL . 'uploads/' . ltrim($f, '/') . "</Image>\n";
-        }
-        echo "    </Images>\n";
-        echo "  </Vehicle>\n";
-    }
-    echo '</Vehicles>';
-    exit;
-}
 
 // Exportar CSV
 if (isset($_GET['exportar_csv'])) {
@@ -130,8 +75,6 @@ $veiculos = obterTodas(
             (SELECT caminho FROM veiculos_fotos WHERE veiculo_id = v.id AND principal = 1 LIMIT 1) AS foto
      FROM veiculos v WHERE v.status = 'disponivel' ORDER BY v.marca, v.modelo"
 );
-
-$feed_url = BASE_URL . 'feed.php';
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -190,7 +133,7 @@ require_once __DIR__ . '/../includes/header.php';
                         <input type="radio" name="portal" value="<?= $key ?>" style="display:none">
                         <div class="portal-card__dot" style="background:<?= $p['cor'] ?>"></div>
                         <div class="portal-card__nome"><?= $p['nome'] ?></div>
-                        <div class="portal-card__tipo"><?= $p['tipo'] === 'xml' ? '📡 Feed XML' : '📄 CSV' ?></div>
+                        <div class="portal-card__tipo">📄 CSV</div>
                     </label>
                     <?php endforeach; ?>
                 </div>
@@ -288,7 +231,6 @@ require_once __DIR__ . '/../includes/header.php';
 <script>
 var portais = <?= json_encode(array_map(function($k, $p){ return array_merge($p, ['key'=>$k]); }, array_keys($portais), $portais)) ?>;
 var portalSelecionado = null;
-var feedUrl = <?= json_encode($feed_url) ?>;
 
 function selecionarVeiculo(id) {
     var sel = document.getElementById('selectVeiculo');
@@ -331,18 +273,10 @@ function selecionarPortal(key) {
     var info   = document.getElementById('infoPortal');
     var btn    = document.getElementById('btnExportar');
 
-    if (portal.tipo === 'xml') {
-        info.innerHTML =
-            '<strong style="color:#D4AF37">📡 ' + portal.nome + ' — Feed XML</strong><br>' +
-            '<span style="color:#aaa;font-size:.85rem">Este portal consome um feed XML automático. Ao exportar, você baixa o arquivo XML do veículo selecionado para revisar ou enviar manualmente. Para integração automática, registre a URL do feed no painel do portal:</span>' +
-            '<code style="display:block;margin-top:8px;padding:8px;background:#111;border-radius:4px;color:#D4AF37;font-size:.8rem;word-break:break-all">' + feedUrl + '</code>';
-        btn.textContent = '⬇ Baixar XML';
-    } else {
-        info.innerHTML =
-            '<strong style="color:#D4AF37">📄 ' + portal.nome + ' — Planilha CSV</strong><br>' +
-            '<span style="color:#aaa;font-size:.85rem">Ao exportar, você baixa uma planilha CSV formatada para ' + portal.nome + '. Faça o upload no painel do portal em <strong>Gerenciador de Catálogos → Importar planilha</strong>.</span>';
-        btn.textContent = '⬇ Baixar CSV';
-    }
+    info.innerHTML =
+        '<strong style="color:#D4AF37">📄 ' + portal.nome + ' — Planilha CSV</strong><br>' +
+        '<span style="color:#aaa;font-size:.85rem">Ao exportar, você baixa uma planilha CSV com os dados do veículo. Faça o upload no painel do ' + portal.nome + ' para publicar o anúncio.</span>';
+    btn.textContent = '⬇ Baixar CSV';
 
     document.getElementById('painelExportar').style.display = 'block';
 }
@@ -354,11 +288,7 @@ function exportar() {
     var portal = portais.find(function(p){ return p.key === portalSelecionado; });
     var params = '?veiculo_id=' + (vid || 0) + '&portal=' + portalSelecionado;
 
-    if (portal.tipo === 'xml') {
-        window.location = params + '&exportar_xml=1';
-    } else {
-        window.location = params + '&exportar_csv=1';
-    }
+    window.location = params + '&exportar_csv=1';
 }
 
 function limparSelecao() {
