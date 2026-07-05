@@ -197,11 +197,11 @@ require_once __DIR__ . '/../includes/header.php';
 <div class="form-section">
     <div class="form-section__titulo">🖼️ Fotos Cadastradas</div>
     <div class="form-section__body">
-        <div class="fotos-grid">
+        <div class="fotos-grid" id="fotosGrid">
             <?php foreach ($fotos as $foto): ?>
             <div class="foto-item <?= $foto['principal'] ? 'foto-item--principal' : '' ?>" data-foto-id="<?= $foto['id'] ?>">
                 <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($foto['caminho']) ?>"
-                     alt="Foto <?= $foto['ordem'] ?>" loading="lazy">
+                     alt="Foto <?= $foto['ordem'] ?>" loading="lazy" draggable="false">
                 <?php if ($foto['principal']): ?>
                 <span class="foto-item__badge-principal">Principal</span>
                 <?php endif; ?>
@@ -256,7 +256,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <script>
 (function() {
-    var grid    = document.querySelector('.fotos-grid');
+    var grid    = document.getElementById('fotosGrid');
     var msgEl   = document.getElementById('msg-ordem');
     var msgTimer;
     if (!grid) return;
