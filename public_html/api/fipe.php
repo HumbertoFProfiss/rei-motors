@@ -93,11 +93,13 @@ if ($acao === 'placa') {
 
     $normalizado = [
         'marca'       => $decoded['MARCA']      ?? '',
-        'modelo'      => $decoded['MODELO']     ?? '',   // ex: "HB20 1.0M COMFOR"
+        'modelo'      => $decoded['MODELO']     ?? '',
         'anoModelo'   => $decoded['anoModelo']  ?? ($decoded['ano'] ?? ''),
-        'combustivel' => $extra['combustivel']  ?? '',   // ex: "Alcool / Gasolina"
-        'cor'         => $decoded['cor']        ?? '',   // ex: "Branca"
+        'combustivel' => $extra['combustivel']  ?? '',
+        'cambio'      => $extra['cambio']       ?? ($decoded['cambio'] ?? ''),
+        'cor'         => $decoded['cor']        ?? '',
         'chassi'      => $extra['chassi']       ?? ($decoded['chassi'] ?? ''),
+        'renavam'     => $extra['renavam']      ?? ($decoded['renavam'] ?? ''),
         'municipio'   => $extra['municipio']    ?? '',
         'situacao'    => $decoded['codigoSituacao'] ?? '',
     ];

@@ -592,18 +592,24 @@ require_once __DIR__ . '/../includes/header.php';
             var fModelo      = document.querySelector('input[name="modelo"]');
             var fAno         = document.querySelector('input[name="ano"]');
             var fCombustivel = document.querySelector('select[name="combustivel"]');
+            var fCambio      = document.querySelector('select[name="cambio"]');
             var fCor         = document.querySelector('input[name="cor"]');
             var fPlacaDoc    = document.querySelector('input[name="placa"]');
+            var fChassi      = document.querySelector('input[name="numero_chassi"]');
+            var fRenavam     = document.querySelector('input[name="renavam"]');
 
-            var fChassi = document.querySelector('input[name="numero_chassi"]');
+            var cambioMap = {'MANUAL':'manual','AUTOMATICO':'automatico','AUTOMÁTICO':'automatico','CVT':'cvt','AUTOMATIZADO':'automatico'};
+            var cambioBruto = (vei.cambio || '').toUpperCase().trim();
 
             if (fMarca  && !fMarca.value)  fMarca.value  = marcaFormatada;
             if (fModelo && !fModelo.value) fModelo.value = modeloFormatado;
             if (fAno    && !fAno.value)    fAno.value    = anoVal;
             if (fCombustivel && combMap[combBruto]) fCombustivel.value = combMap[combBruto];
+            if (fCambio && cambioMap[cambioBruto]) fCambio.value = cambioMap[cambioBruto];
             if (fCor    && vei.cor && !fCor.value) fCor.value = capitalizarMarca(vei.cor);
             if (fPlacaDoc && !fPlacaDoc.value) fPlacaDoc.value = placa;
             if (fChassi && vei.chassi && !fChassi.value) fChassi.value = vei.chassi;
+            if (fRenavam && vei.renavam && !fRenavam.value) fRenavam.value = vei.renavam;
 
             buscaMarca.value  = marcaFormatada;
             buscaModelo.value = modeloFormatado;

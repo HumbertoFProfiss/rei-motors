@@ -88,6 +88,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['fotos'])) {
     }
 }
 
+// ===== SALVAR ORDEM VIA AJAX =====
+if (isset($_GET['salvar_ordem'])) {
+    header('Content-Type: application/json');
+    $body  = json_decode(file_get_contents('php://input'), true);
+    $itens = $body['ordem'] ?? [];
+    foreach ($itens as $item) {
+        $fid = (int)($item['id']    ?? 0);
+        $ord = (int)($item['ordem'] ?? 0);
+        if ($fid > 0 && $ord > 0) {
+            executarQuery(
+                "UPDATE veiculos_fotos SET ordem = ? WHERE id = ? AND veiculo_id = ?",
+                [$ord, $fid, $id]
+            );
+        }
+    }
+    echo json_encode(['ok' => true]);
+    exit;
+}
+
 // ===== DEFINIR COMO PRINCIPAL =====
 if (isset($_GET['principal'])) {
     $foto_id = (int)$_GET['principal'];
@@ -180,7 +199,7 @@ require_once __DIR__ . '/../includes/header.php';
     <div class="form-section__body">
         <div class="fotos-grid">
             <?php foreach ($fotos as $foto): ?>
-            <div class="foto-item <?= $foto['principal'] ? 'foto-item--principal' : '' ?>">
+            <div class="foto-item <?= $foto['principal'] ? 'foto-item--principal' : '' ?>" data-foto-id="<?= $foto['id'] ?>">
                 <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($foto['caminho']) ?>"
                      alt="Foto <?= $foto['ordem'] ?>" loading="lazy">
                 <?php if ($foto['principal']): ?>
@@ -201,7 +220,7 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endforeach; ?>
         </div>
         <p style="margin-top:12px;font-size:0.72rem;color:#888">
-            ★ Clique em uma foto para defini-la como principal (capa do card e galeria)
+            ★ Clique em uma foto para defini-la como principal (capa do card e galeria) &nbsp;|&nbsp; ☰ Arraste as fotos para reordenar
         </p>
     </div>
 </div>
@@ -216,5 +235,101 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 <?php endif; ?>
+
+<style>
+.foto-item { cursor: grab; user-select: none; }
+.foto-item:active { cursor: grabbing; }
+.foto-item.drag-sobre { outline: 2px dashed #D4AF37; outline-offset: 2px; }
+.foto-item.drag-arrastando { opacity: .35; }
+#msg-ordem {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #22c55e; color: #fff;
+    padding: 8px 18px; border-radius: 6px;
+    font-size: .85rem; pointer-events: none;
+    opacity: 0; transition: opacity .3s;
+    z-index: 9999;
+}
+#msg-ordem.visivel { opacity: 1; }
+</style>
+
+<div id="msg-ordem">✓ Ordem salva</div>
+
+<script>
+(function() {
+    var grid    = document.querySelector('.fotos-grid');
+    var msgEl   = document.getElementById('msg-ordem');
+    var msgTimer;
+    if (!grid) return;
+
+    var items = grid.querySelectorAll('.foto-item[data-foto-id]');
+    if (items.length < 2) return;
+
+    var arrastando = null;
+
+    items.forEach(function(item) {
+        item.setAttribute('draggable', 'true');
+
+        item.addEventListener('dragstart', function(e) {
+            arrastando = this;
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(function() { arrastando.classList.add('drag-arrastando'); }, 0);
+        });
+
+        item.addEventListener('dragend', function() {
+            this.classList.remove('drag-arrastando');
+            grid.querySelectorAll('.foto-item').forEach(function(i) {
+                i.classList.remove('drag-sobre');
+            });
+            salvarOrdem();
+        });
+
+        item.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (this !== arrastando) {
+                grid.querySelectorAll('.foto-item').forEach(function(i) { i.classList.remove('drag-sobre'); });
+                this.classList.add('drag-sobre');
+            }
+        });
+
+        item.addEventListener('dragleave', function() {
+            this.classList.remove('drag-sobre');
+        });
+
+        item.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-sobre');
+            if (this === arrastando) return;
+            var all   = Array.from(grid.querySelectorAll('.foto-item'));
+            var fromI = all.indexOf(arrastando);
+            var toI   = all.indexOf(this);
+            if (fromI < toI) {
+                grid.insertBefore(arrastando, this.nextSibling);
+            } else {
+                grid.insertBefore(arrastando, this);
+            }
+        });
+    });
+
+    function salvarOrdem() {
+        var ordem = Array.from(grid.querySelectorAll('.foto-item[data-foto-id]')).map(function(el, idx) {
+            return { id: el.dataset.fotoId, ordem: idx + 1 };
+        });
+        fetch('fotos.php?id=<?= $id ?>&salvar_ordem=1', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ordem: ordem })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.ok) {
+                clearTimeout(msgTimer);
+                msgEl.classList.add('visivel');
+                msgTimer = setTimeout(function() { msgEl.classList.remove('visivel'); }, 2000);
+            }
+        });
+    }
+})();
+</script>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
