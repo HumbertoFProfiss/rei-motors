@@ -548,6 +548,14 @@ require_once __DIR__ . '/../includes/header.php';
                         inputFipe.value = parseFloat(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
                         spanRef.style.color = '#22c55e';
                         spanRef.textContent = '✓ ' + (preco.Modelo || modeloObj.nome) + ' — ' + anoObj.nome + ' — R$ ' + preco.Valor;
+                        // Preencher campos principais do formulário com dados da FIPE
+                        var anoMatch = (anoObj.nome || '').match(/(\d{4})/);
+                        var fMarcaP  = document.querySelector('input[name="marca"]');
+                        var fModeloP = document.querySelector('input[name="modelo"]');
+                        var fAnoP    = document.querySelector('input[name="ano"]');
+                        if (fMarcaP  && !fMarcaP.value)  fMarcaP.value  = marcaObj.nome;
+                        if (fModeloP && !fModeloP.value) fModeloP.value = preco.Modelo || modeloObj.nome;
+                        if (fAnoP    && anoMatch)        fAnoP.value    = anoMatch[1];
                     });
                 });
             });
