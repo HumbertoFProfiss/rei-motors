@@ -241,6 +241,10 @@ require_once __DIR__ . '/../includes/header.php';
 .foto-item:active { cursor: grabbing; }
 .foto-item.drag-sobre { outline: 2px dashed #D4AF37; outline-offset: 2px; }
 .foto-item.drag-arrastando { opacity: .35; }
+/* Overlay só visual — botões dentro ainda recebem cliques */
+#fotosGrid .foto-item__acoes { pointer-events: none; }
+#fotosGrid .foto-item__acoes a,
+#fotosGrid .foto-item__acoes button { pointer-events: auto; }
 #msg-ordem {
     position: fixed; bottom: 24px; right: 24px;
     background: #22c55e; color: #fff;
@@ -262,7 +266,7 @@ require_once __DIR__ . '/../includes/header.php';
     if (!grid) return;
 
     var items = grid.querySelectorAll('.foto-item[data-foto-id]');
-    if (items.length < 2) return;
+    if (items.length < 1) return;
 
     var arrastando = null;
 
