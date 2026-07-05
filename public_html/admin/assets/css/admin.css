@@ -224,6 +224,15 @@ small { font-size: 0.92rem; color: #888; }
 .form-grupo--2 { grid-column: span 2; }
 .form-grupo label { font-size: 0.8rem; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.07em; }
 .form-grupo label .obrigatorio { color: #f87171; margin-left: 2px; }
+/* ===== OPCIONAIS ===== */
+.opcionais-grupo { margin-bottom: 16px; }
+.opcionais-grupo:last-child { margin-bottom: 0; }
+.opcionais-grupo__titulo { font-size: 0.7rem; font-weight: 700; color: #D4AF37; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+.opcionais-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.opcional-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #C0C0C0; cursor: pointer; padding: 6px 10px; border: 1px solid #222; border-radius: 6px; transition: border-color 0.15s, background-color 0.15s; user-select: none; }
+.opcional-item:hover { border-color: #333; background: #181818; }
+.opcional-item input[type="checkbox"] { width: 14px; height: 14px; accent-color: #D4AF37; flex-shrink: 0; }
+.opcional-item:has(input:checked) { border-color: #D4AF37; background: rgba(212,175,55,0.06); color: #E0E0E0; }
 .form-grupo input, .form-grupo select, .form-grupo textarea {
     background-color: #0A0A0A; border: 1px solid #222;
     color: #E0E0E0; border-radius: 6px; padding: 8px 11px;

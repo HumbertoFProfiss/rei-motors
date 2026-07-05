@@ -51,6 +51,10 @@ $erros = [];
 $d = $veiculo;
 $video_existente = obterUmaLinha("SELECT id, url_youtube FROM veiculos_videos WHERE veiculo_id = ?", [$id]);
 $url_youtube = $video_existente['url_youtube'] ?? '';
+$opcionais_selecionados = array_column(
+    obterTodas("SELECT opcional FROM veiculos_opcionais WHERE veiculo_id = ?", [$id]),
+    'opcional'
+);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['marca']           = sanitizar($_POST['marca'] ?? '');
@@ -106,6 +110,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($campos as $c) $update[$c] = $d[$c];
 
         atualizar('veiculos', $update, 'id = ?', [$id]);
+
+        // Salvar opcionais (delete-then-insert)
+        executarQuery("DELETE FROM veiculos_opcionais WHERE veiculo_id = ?", [$id]);
+        $todos_op = array_merge(...array_values(listarOpcionais()));
+        foreach ($_POST['opcionais'] ?? [] as $op) {
+            if (isset($todos_op[$op])) {
+                inserir('veiculos_opcionais', ['veiculo_id' => $id, 'opcional' => $op]);
+            }
+        }
+        $opcionais_selecionados = array_keys(array_intersect_key($todos_op, array_flip($_POST['opcionais'] ?? [])));
 
         if ($video_existente) {
             if ($url_youtube !== '') {
@@ -373,6 +387,27 @@ require_once __DIR__ . '/../includes/header.php';
                            value="<?= htmlspecialchars($d['renavam'] ?? '') ?>" maxlength="20">
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- OPCIONAIS -->
+    <div class="form-section">
+        <div class="form-section__titulo">✅ Opcionais e Acessórios</div>
+        <div class="form-section__body">
+            <?php foreach (listarOpcionais() as $categoria => $itens): ?>
+            <div class="opcionais-grupo">
+                <div class="opcionais-grupo__titulo"><?= htmlspecialchars($categoria) ?></div>
+                <div class="opcionais-grid">
+                    <?php foreach ($itens as $key => $label): ?>
+                    <label class="opcional-item">
+                        <input type="checkbox" name="opcionais[]" value="<?= $key ?>"
+                               <?= in_array($key, $opcionais_selecionados, true) ? 'checked' : '' ?>>
+                        <?= htmlspecialchars($label) ?>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 

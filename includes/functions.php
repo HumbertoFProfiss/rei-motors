@@ -4,6 +4,54 @@
  * Rei Motors - Loja de Carros Online
  */
 
+function listarOpcionais(): array {
+    return [
+        'Conforto' => [
+            'ar_condicionado'       => 'Ar-condicionado',
+            'direcao_hidraulica'    => 'Direção hidráulica',
+            'direcao_eletrica'      => 'Direção elétrica',
+            'vidro_eletrico_diant'  => 'Vidros elétricos dianteiros',
+            'vidro_eletrico_4'      => 'Vidros elétricos (4 vidros)',
+            'trava_eletrica'        => 'Travas elétricas',
+            'banco_couro'           => 'Bancos em couro',
+            'banco_eletrico'        => 'Banco c/ regulagem elétrica',
+            'retrovisor_eletrico'   => 'Retrovisores elétricos',
+            'retrovisor_rebativel'  => 'Retrovisores rebatíveis',
+            'volante_multimidia'    => 'Volante com controle de áudio',
+            'teto_solar'            => 'Teto solar',
+        ],
+        'Segurança' => [
+            'airbag_duplo'          => 'Airbag duplo',
+            'airbag_lateral'        => 'Airbag lateral/cortina',
+            'abs'                   => 'Freios ABS',
+            'freio_disco_4'         => 'Freios a disco nas 4 rodas',
+            'controle_tracao'       => 'Controle de tração',
+            'controle_estabilidade' => 'Controle de estabilidade (ESP)',
+            'alarme'                => 'Alarme',
+            'camera_re'             => 'Câmera de ré',
+            'sensor_re'             => 'Sensor de ré',
+            'sensor_dianteiro'      => 'Sensor dianteiro',
+        ],
+        'Tecnologia' => [
+            'multimidia'            => 'Central multimídia',
+            'bluetooth'             => 'Bluetooth',
+            'gps'                   => 'GPS integrado',
+            'cruise_control'        => 'Cruise control',
+            'start_stop'            => 'Start/Stop automático',
+            'carregador_wireless'   => 'Carregador wireless',
+            'conexao_usb'           => 'Entrada USB',
+        ],
+        'Exterior' => [
+            'rodas_liga_leve'       => 'Rodas de liga leve',
+            'farol_milha'           => 'Faróis de neblina',
+            'farol_led'             => 'Faróis de LED',
+            'teto_panoramico'       => 'Teto panorâmico',
+            'tracao_4x4'            => 'Tração 4x4',
+            'kit_gnv'               => 'Kit GNV',
+        ],
+    ];
+}
+
 require_once __DIR__ . '/config.php';
 
 // ===== FUNÇÕES DE VALIDAÇÃO =====

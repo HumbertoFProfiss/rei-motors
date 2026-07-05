@@ -107,10 +107,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             inserir('veiculos_videos', ['veiculo_id' => $novo_id, 'url_youtube' => $url_youtube]);
         }
 
+        $todos_op = array_merge(...array_values(listarOpcionais()));
+        foreach ($_POST['opcionais'] ?? [] as $op) {
+            if (isset($todos_op[$op])) {
+                inserir('veiculos_opcionais', ['veiculo_id' => $novo_id, 'opcional' => $op]);
+            }
+        }
+
         header('Location: ' . ADMIN_URL . 'veiculos/fotos.php?id=' . $novo_id . '&msg=criado');
         exit;
     }
 }
+
+$opcionais_selecionados = $_POST['opcionais'] ?? [];
 
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -359,6 +368,27 @@ require_once __DIR__ . '/../includes/header.php';
                            maxlength="20">
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- OPCIONAIS -->
+    <div class="form-section">
+        <div class="form-section__titulo">✅ Opcionais e Acessórios</div>
+        <div class="form-section__body">
+            <?php foreach (listarOpcionais() as $categoria => $itens): ?>
+            <div class="opcionais-grupo">
+                <div class="opcionais-grupo__titulo"><?= htmlspecialchars($categoria) ?></div>
+                <div class="opcionais-grid">
+                    <?php foreach ($itens as $key => $label): ?>
+                    <label class="opcional-item">
+                        <input type="checkbox" name="opcionais[]" value="<?= $key ?>"
+                               <?= in_array($key, $opcionais_selecionados, true) ? 'checked' : '' ?>>
+                        <?= htmlspecialchars($label) ?>
+                    </label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 

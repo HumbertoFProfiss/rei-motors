@@ -49,6 +49,12 @@ if ($video && !empty($video['url_youtube'])) {
     }
 }
 
+// Opcionais do veículo
+$opcionais_veiculo = array_column(
+    obterTodas("SELECT opcional FROM veiculos_opcionais WHERE veiculo_id = ?", [$veiculo['id']]),
+    'opcional'
+);
+
 // Veículos relacionados (mesma marca, excluindo este)
 $relacionados = obterTodas(
     "SELECT v.*,
@@ -319,6 +325,30 @@ $csrf_token = gerarTokenCSRF();
         <div class="container">
             <h2 class="section__title">Descrição</h2>
             <p class="veiculo__descricao-texto"><?php echo nl2br(htmlspecialchars($veiculo['descricao'])); ?></p>
+        </div>
+    </section>
+    <?php endif; ?>
+
+    <!-- ===== OPCIONAIS ===== -->
+    <?php if ($opcionais_veiculo): ?>
+    <section class="veiculo__opcionais-section">
+        <div class="container">
+            <h2 class="section__title">Opcionais e Acessórios</h2>
+            <?php
+            $todos_opcionais = listarOpcionais();
+            foreach ($todos_opcionais as $categoria => $itens):
+                $itens_veiculo = array_intersect_key($itens, array_flip($opcionais_veiculo));
+                if (!$itens_veiculo) continue;
+            ?>
+            <div class="opcionais-categoria">
+                <div class="opcionais-categoria__titulo"><?= htmlspecialchars($categoria) ?></div>
+                <ul class="opcionais-lista">
+                    <?php foreach ($itens_veiculo as $label): ?>
+                    <li class="opcionais-item"><?= htmlspecialchars($label) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endforeach; ?>
         </div>
     </section>
     <?php endif; ?>
