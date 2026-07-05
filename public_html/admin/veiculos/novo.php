@@ -603,7 +603,7 @@ require_once __DIR__ . '/../includes/header.php';
 
             if (fMarca  && !fMarca.value)  fMarca.value  = marcaFormatada;
             if (fModelo && !fModelo.value) fModelo.value = modeloFormatado;
-            if (fAno    && !fAno.value)    fAno.value    = anoVal;
+            if (fAno    && anoVal)         fAno.value    = anoVal;
             if (fCombustivel && combMap[combBruto]) fCombustivel.value = combMap[combBruto];
             if (fCambio && cambioMap[cambioBruto]) fCambio.value = cambioMap[cambioBruto];
             if (fCor    && vei.cor && !fCor.value) fCor.value = capitalizarMarca(vei.cor);
