@@ -1,7 +1,6 @@
 <?php
 /**
- * Funções Reutilizáveis
- * Rei Motors - Loja de Carros Online
+ * Funções Reutilizáveis — Rei Motors - Loja de Carros Online
  */
 
 function listarOpcionais(): array {
