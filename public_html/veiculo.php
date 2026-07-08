@@ -50,10 +50,14 @@ if ($video && !empty($video['url_youtube'])) {
 }
 
 // Opcionais do veículo
-$opcionais_veiculo = array_column(
-    obterTodas("SELECT opcional FROM veiculos_opcionais WHERE veiculo_id = ?", [$veiculo['id']]),
-    'opcional'
-);
+try {
+    $opcionais_veiculo = array_column(
+        obterTodas("SELECT opcional FROM veiculos_opcionais WHERE veiculo_id = ?", [$veiculo['id']]) ?? [],
+        'opcional'
+    );
+} catch (\Throwable $e) {
+    $opcionais_veiculo = [];
+}
 
 // Veículos relacionados (mesma marca, excluindo este)
 $relacionados = obterTodas(

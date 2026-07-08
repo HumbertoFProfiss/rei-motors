@@ -107,12 +107,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             inserir('veiculos_videos', ['veiculo_id' => $novo_id, 'url_youtube' => $url_youtube]);
         }
 
-        $todos_op = array_merge(...array_values(listarOpcionais()));
-        foreach ($_POST['opcionais'] ?? [] as $op) {
-            if (isset($todos_op[$op])) {
-                inserir('veiculos_opcionais', ['veiculo_id' => $novo_id, 'opcional' => $op]);
+        try {
+            $todos_op = array_merge(...array_values(listarOpcionais()));
+            foreach ($_POST['opcionais'] ?? [] as $op) {
+                if (isset($todos_op[$op])) {
+                    inserir('veiculos_opcionais', ['veiculo_id' => $novo_id, 'opcional' => $op]);
+                }
             }
-        }
+        } catch (\Throwable $e) { /* tabela ainda não criada */ }
 
         header('Location: ' . ADMIN_URL . 'veiculos/fotos.php?id=' . $novo_id . '&msg=criado');
         exit;

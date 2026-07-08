@@ -51,10 +51,14 @@ $erros = [];
 $d = $veiculo;
 $video_existente = obterUmaLinha("SELECT id, url_youtube FROM veiculos_videos WHERE veiculo_id = ?", [$id]);
 $url_youtube = $video_existente['url_youtube'] ?? '';
-$opcionais_selecionados = array_column(
-    obterTodas("SELECT opcional FROM veiculos_opcionais WHERE veiculo_id = ?", [$id]),
-    'opcional'
-);
+try {
+    $opcionais_selecionados = array_column(
+        obterTodas("SELECT opcional FROM veiculos_opcionais WHERE veiculo_id = ?", [$id]) ?? [],
+        'opcional'
+    );
+} catch (\Throwable $e) {
+    $opcionais_selecionados = [];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['marca']           = sanitizar($_POST['marca'] ?? '');
@@ -112,14 +116,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         atualizar('veiculos', $update, 'id = ?', [$id]);
 
         // Salvar opcionais (delete-then-insert)
-        executarQuery("DELETE FROM veiculos_opcionais WHERE veiculo_id = ?", [$id]);
-        $todos_op = array_merge(...array_values(listarOpcionais()));
-        foreach ($_POST['opcionais'] ?? [] as $op) {
-            if (isset($todos_op[$op])) {
-                inserir('veiculos_opcionais', ['veiculo_id' => $id, 'opcional' => $op]);
+        try {
+            executarQuery("DELETE FROM veiculos_opcionais WHERE veiculo_id = ?", [$id]);
+            $todos_op = array_merge(...array_values(listarOpcionais()));
+            foreach ($_POST['opcionais'] ?? [] as $op) {
+                if (isset($todos_op[$op])) {
+                    inserir('veiculos_opcionais', ['veiculo_id' => $id, 'opcional' => $op]);
+                }
             }
+            $opcionais_selecionados = array_keys(array_intersect_key($todos_op, array_flip($_POST['opcionais'] ?? [])));
+        } catch (\Throwable $e) {
+            $opcionais_selecionados = [];
         }
-        $opcionais_selecionados = array_keys(array_intersect_key($todos_op, array_flip($_POST['opcionais'] ?? [])));
 
         if ($video_existente) {
             if ($url_youtube !== '') {
