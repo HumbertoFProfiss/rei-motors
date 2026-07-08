@@ -399,6 +399,7 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 
     <!-- OPCIONAIS -->
+    <?php if (function_exists('listarOpcionais')): ?>
     <div class="form-section">
         <div class="form-section__titulo">✅ Opcionais e Acessórios</div>
         <div class="form-section__body">
@@ -418,6 +419,7 @@ require_once __DIR__ . '/../includes/header.php';
             <?php endforeach; ?>
         </div>
     </div>
+    <?php endif; ?>
 
     <div class="form-acoes">
         <a href="." class="btn-admin btn-admin--secondary">Cancelar</a>
