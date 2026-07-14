@@ -32,9 +32,25 @@ if (isset($_GET['deletar']) && ehAdmin()) {
     requerAutenticacao();
     $id_del = (int)$_GET['deletar'];
     if ($id_del > 0) {
-        // Fotos são excluídas em cascade pelo FK
-        deletar('veiculos', 'id = ?', [$id_del]);
-        header('Location: ' . ADMIN_URL . 'veiculos/?msg=deletado');
+        // Verifica se há vendas ativas (não canceladas) — bloqueia exclusão
+        $venda_ativa = obterUmaLinha(
+            "SELECT id FROM vendas WHERE veiculo_id = ? AND status != 'cancelada' LIMIT 1",
+            [$id_del]
+        );
+        if ($venda_ativa) {
+            header('Location: ' . ADMIN_URL . 'veiculos/?msg=erro_venda_ativa');
+            exit;
+        }
+        // Nulifica veiculo_id em vendas canceladas e em garantias (remove RESTRICT)
+        executarQuery("UPDATE vendas SET veiculo_id = NULL WHERE veiculo_id = ? AND status = 'cancelada'", [$id_del]);
+        executarQuery("UPDATE garantias_chamados SET veiculo_id = NULL WHERE veiculo_id = ?", [$id_del]);
+        // Agora deleta (fotos, opcionais, favoritos e videos são CASCADE)
+        $ok = deletar('veiculos', 'id = ?', [$id_del]);
+        if ($ok) {
+            header('Location: ' . ADMIN_URL . 'veiculos/?msg=deletado');
+        } else {
+            header('Location: ' . ADMIN_URL . 'veiculos/?msg=erro_deletar');
+        }
         exit;
     }
 }
@@ -82,6 +98,8 @@ require_once __DIR__ . '/../includes/header.php';
 
 <?php if ($msg === 'salvo'):    ?><div class="alert-admin alert-admin--success">✓ Veículo salvo com sucesso.</div><?php endif; ?>
 <?php if ($msg === 'deletado'): ?><div class="alert-admin alert-admin--success">✓ Veículo excluído.</div><?php endif; ?>
+<?php if ($msg === 'erro_venda_ativa'): ?><div class="alert-admin alert-admin--error">✗ Não é possível excluir: este veículo possui uma venda ativa. Cancele a venda antes de excluir.</div><?php endif; ?>
+<?php if ($msg === 'erro_deletar'): ?><div class="alert-admin alert-admin--error">✗ Erro ao excluir o veículo. Tente novamente.</div><?php endif; ?>
 
 <div class="page__header">
     <div>
