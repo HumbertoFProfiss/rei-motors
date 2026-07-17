@@ -178,6 +178,7 @@ if ($filtros['marca']) $titulo_pagina = 'Carros ' . $filtros['marca'];
                     <li><a href="<?php echo BASE_URL; ?>#venda-seu-carro" class="nav__link">Venda seu Carro</a></li>
                     <li><a href="<?php echo BASE_URL; ?>#financiamento" class="nav__link">Financiamento</a></li>
                     <li><a href="<?php echo BASE_URL; ?>#contato" class="nav__link">Contato</a></li>
+                    <li><a href="<?php echo CLIENTE_URL; ?>" class="nav__link">👤 Área do Cliente</a></li>
                 </ul>
             </nav>
 
