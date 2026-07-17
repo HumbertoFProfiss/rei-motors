@@ -141,7 +141,7 @@ $qtd_chamados = (int)($chamados_abertos['total'] ?? 0);
            target="_blank" class="btn-c btn-c--primary">
             💬 WhatsApp
         </a>
-        <a href="tel:<?= preg_replace('/\D/','',(string)LOJA_TELEFONE) ?>"
+        <a href="tel:+55<?= preg_replace('/\D/','',(string)LOJA_TELEFONE) ?>"
            class="btn-c btn-c--secondary">
             📞 Ligar para a Loja
         </a>
