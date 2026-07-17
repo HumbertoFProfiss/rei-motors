@@ -53,6 +53,46 @@ function listarOpcionais(): array {
 
 require_once __DIR__ . '/config.php';
 
+// ===== FUNÇÕES DE BANCO DE DADOS =====
+
+function obterTodas(string $sql, array $params = []): array {
+    global $pdo;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll();
+}
+
+function obterUmaLinha(string $sql, array $params = []) {
+    global $pdo;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetch() ?: null;
+}
+
+function inserir(string $tabela, array $dados): int {
+    global $pdo;
+    $colunas       = implode(', ', array_keys($dados));
+    $placeholders  = implode(', ', array_fill(0, count($dados), '?'));
+    $pdo->prepare("INSERT INTO $tabela ($colunas) VALUES ($placeholders)")
+        ->execute(array_values($dados));
+    return (int) $pdo->lastInsertId();
+}
+
+function atualizar(string $tabela, array $dados, string $where, array $params = []): int {
+    global $pdo;
+    $set  = implode(', ', array_map(fn($col) => "$col = ?", array_keys($dados)));
+    $stmt = $pdo->prepare("UPDATE $tabela SET $set WHERE $where");
+    $stmt->execute(array_merge(array_values($dados), $params));
+    return $stmt->rowCount();
+}
+
+function deletar(string $tabela, string $where, array $params = []): int {
+    global $pdo;
+    $stmt = $pdo->prepare("DELETE FROM $tabela WHERE $where");
+    $stmt->execute($params);
+    return $stmt->rowCount();
+}
+
 // ===== FUNÇÕES DE VALIDAÇÃO =====
 
 /**
