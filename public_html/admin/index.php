@@ -24,7 +24,7 @@ $leads_novos        = obterUmaLinha("SELECT COUNT(*) c FROM leads WHERE tipo_lea
 $total_clientes     = obterUmaLinha("SELECT COUNT(*) c FROM clientes")['c'];
 
 $row_vendas = obterUmaLinha(
-    "SELECT COUNT(*) c, COALESCE(SUM(preco_venda),0) v
+    "SELECT COUNT(*) c, COALESCE(SUM(preco_venda - desconto_aplicado),0) v
      FROM vendas
      WHERE MONTH(data_venda)=MONTH(CURDATE()) AND YEAR(data_venda)=YEAR(CURDATE())
        AND status IN ('confirmada','entregue')"
