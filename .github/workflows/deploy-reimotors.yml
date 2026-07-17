@@ -15,7 +15,7 @@ jobs:
 
       - name: Deploy via lftp
         env:
-          FTP_HOST: ${{ secrets.FTP_HOST_REIMOTORS }}
+          FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER_REIMOTORS }}
           FTP_PASS: ${{ secrets.FTP_PASS_REIMOTORS }}
           FTP_PATH: ${{ secrets.FTP_PATH_REIMOTORS }}
