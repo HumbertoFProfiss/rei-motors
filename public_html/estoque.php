@@ -6,8 +6,12 @@ require_once __DIR__ . '/../includes/functions.php';
 // Favoritos do cliente logado
 $favoritos_ids = [];
 if (clienteAutenticado()) {
-    $favs = obterTodas("SELECT veiculo_id FROM cliente_favoritos WHERE cliente_id = ?", [$_SESSION['cliente_id']]);
-    foreach ($favs as $f) $favoritos_ids[] = (int)$f['veiculo_id'];
+    try {
+        $favs = obterTodas("SELECT veiculo_id FROM cliente_favoritos WHERE cliente_id = ?", [$_SESSION['cliente_id']]);
+        foreach ($favs as $f) $favoritos_ids[] = (int)$f['veiculo_id'];
+    } catch (Exception $e) {
+        // tabela pode não existir ainda
+    }
 }
 
 // ===== FILTROS =====

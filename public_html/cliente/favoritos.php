@@ -13,7 +13,9 @@ $id = (int)$_SESSION['cliente_id'];
 // Remover favorito
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remover_id'])) {
     $vid = (int)$_POST['remover_id'];
-    executarQuery("DELETE FROM cliente_favoritos WHERE cliente_id = ? AND veiculo_id = ?", [$id, $vid]);
+    try {
+        deletar('cliente_favoritos', 'cliente_id = ? AND veiculo_id = ?', [$id, $vid]);
+    } catch (Exception $e) { }
     header('Location: ' . CLIENTE_URL . 'favoritos.php');
     exit;
 }
