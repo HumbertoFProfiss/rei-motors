@@ -135,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['form_venda'])) {
                     <li><a href="#venda-seu-carro" class="nav__link">Venda seu Carro</a></li>
                     <li><a href="#financiamento" class="nav__link">Financiamento</a></li>
                     <li><a href="#contato" class="nav__link">Contato</a></li>
-                    <li><a href="<?php echo CLIENTE_URL; ?>" class="nav__link">👤 Área do Cliente</a></li>
+                    <li class="nav__link--mobile-only"><a href="<?php echo CLIENTE_URL; ?>" class="nav__link">👤 Área do Cliente</a></li>
                 </ul>
             </nav>
 
