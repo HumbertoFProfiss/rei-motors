@@ -69,13 +69,13 @@ $resultado_liquido = $lucro_bruto - $desp_operacionais;
 
 // Dados mensais para gráfico
 $mensal = obterTodas(
-    "SELECT MONTH(data_venda) as mes,
-            COALESCE(SUM(preco_venda - desconto_aplicado), 0) as receita,
+    "SELECT MONTH(vd.data_venda) as mes,
+            COALESCE(SUM(vd.preco_venda - vd.desconto_aplicado), 0) as receita,
             COALESCE(SUM(v.preco_custo), 0) as custo
      FROM vendas vd
      JOIN veiculos v ON v.id = vd.veiculo_id
-     WHERE YEAR(data_venda) = ? AND status IN ('confirmada','entregue')
-     GROUP BY MONTH(data_venda) ORDER BY mes ASC",
+     WHERE YEAR(vd.data_venda) = ? AND vd.status IN ('confirmada','entregue')
+     GROUP BY MONTH(vd.data_venda) ORDER BY mes ASC",
     [$ano]
 );
 
