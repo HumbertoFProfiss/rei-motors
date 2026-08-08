@@ -14,11 +14,11 @@ define('LOJA_HORARIO', 'Seg-Sex: 08h às 18h30 | Sáb: 08h às 13h');
 
 // ===== URLs =====
 $_host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-if (str_contains($_host, 'reimotors.com.br')) {
-    define('BASE_URL', 'https://reimotors.com.br/');
+if (str_contains($_host, 'reimotorsbr.com.br')) {
+    define('BASE_URL', 'https://reimotorsbr.com.br/');
     define('UPLOAD_PATH', !empty($_SERVER['DOCUMENT_ROOT'])
         ? rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/uploads/'
-        : __DIR__ . '/../reimotors.com.br/uploads/');
+        : __DIR__ . '/../reimotorsbr.com.br/uploads/');
 } elseif (str_contains($_host, 'worldcred.com.br')) {
     define('BASE_URL', 'https://worldcred.com.br/');
     define('UPLOAD_PATH', !empty($_SERVER['DOCUMENT_ROOT'])
