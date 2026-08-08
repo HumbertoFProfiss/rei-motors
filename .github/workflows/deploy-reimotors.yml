@@ -1,4 +1,4 @@
-name: Deploy → reimotorsbr.com.br
+name: Deploy → reimotors.com.br
 
 on:
   push:
