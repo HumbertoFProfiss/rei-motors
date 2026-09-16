@@ -47,8 +47,16 @@ $custos_adicionais_mes = (float)(obterUmaLinha(
        AND vd.status IN ('confirmada','entregue')"
 )['c'] ?? 0);
 
+// Lucro de financiamento (comissão de banco/financeira) dos carros vendidos no mês
+$lucro_financiamento_mes = (float)(obterUmaLinha(
+    "SELECT COALESCE(SUM(lucro_financiamento),0) c
+     FROM vendas
+     WHERE MONTH(data_venda)=MONTH(CURDATE()) AND YEAR(data_venda)=YEAR(CURDATE())
+       AND status IN ('confirmada','entregue')"
+)['c'] ?? 0);
+
 $lucro_mes   = (float)$row_vendas['v'] - $custo_mes;
-$lucro_liq   = $lucro_mes - $custos_adicionais_mes;
+$lucro_liq   = $lucro_mes - $custos_adicionais_mes + $lucro_financiamento_mes;
 
 // ===== FATURAMENTO 12 MESES =====
 $fat_12m = obterTodas(

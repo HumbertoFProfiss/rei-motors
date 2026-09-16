@@ -54,8 +54,16 @@ $cvv_comissoes = (float)(obterUmaLinha(
 
 $cvv_total = $cvv_custo + $cvv_desp_veic + $cvv_garantias + $cvv_comissoes;
 
+// 2b. LUCRO DE FINANCIAMENTO — comissão recebida do banco/financeira por venda,
+// valor variável lançado manualmente em cada venda (pode ser 0)
+$lucro_financiamento = (float)(obterUmaLinha(
+    "SELECT COALESCE(SUM(lucro_financiamento), 0) as t
+     FROM vendas WHERE YEAR(data_venda) = ? AND status IN ('confirmada','entregue')",
+    [$ano]
+)['t'] ?? 0);
+
 // 3. LUCRO BRUTO
-$lucro_bruto = $rec_bruta - $cvv_total;
+$lucro_bruto = $rec_bruta - $cvv_total + $lucro_financiamento;
 
 // 4. DESPESAS OPERACIONAIS (contas_pagar pagas no ano)
 $desp_operacionais = (float)(obterUmaLinha(
@@ -146,6 +154,10 @@ require_once __DIR__ . '/../includes/header.php';
             <tr>
                 <td style="padding-left:2rem">(-) Comissões de Vendedores</td>
                 <td style="color:#f44336">(<?= formatarMoeda($cvv_comissoes) ?>)</td>
+            </tr>
+            <tr>
+                <td style="padding-left:2rem">(+) Lucro de Financiamento</td>
+                <td style="color:#4CAF50"><?= formatarMoeda($lucro_financiamento) ?></td>
             </tr>
             <tr style="background:rgba(76,175,80,0.08)">
                 <td style="font-weight:700">= LUCRO BRUTO</td>

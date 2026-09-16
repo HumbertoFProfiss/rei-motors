@@ -78,7 +78,8 @@ $vendas = obterTodas(
 
 // Totais do período filtrado
 $totais = obterUmaLinha(
-    "SELECT COUNT(*) c, COALESCE(SUM(preco_venda),0) faturamento, COALESCE(SUM(comissao_vendedor),0) comissao
+    "SELECT COUNT(*) c, COALESCE(SUM(preco_venda),0) faturamento, COALESCE(SUM(comissao_vendedor),0) comissao,
+            COALESCE(SUM(lucro_financiamento),0) lucro_financiamento
      FROM vendas ve WHERE $where_sql AND ve.status IN ('confirmada','entregue')",
     $params
 );
@@ -128,6 +129,11 @@ require_once __DIR__ . '/../includes/header.php';
         <p class="stat-card__label">Total Comissões</p>
         <p class="stat-card__valor" style="font-size:1.3rem"><?= formatarMoeda($totais['comissao']) ?></p>
         <p class="stat-card__sub">a pagar vendedores</p>
+    </div>
+    <div class="stat-card stat-card--green">
+        <p class="stat-card__label">Lucro de Financiamento</p>
+        <p class="stat-card__valor" style="font-size:1.3rem"><?= formatarMoeda($totais['lucro_financiamento']) ?></p>
+        <p class="stat-card__sub">comissão de bancos/financeiras</p>
     </div>
 </div>
 <?php endif; ?>
@@ -194,6 +200,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <th>Forma Pag.</th>
                 <th>Valor</th>
                 <th>Comissão</th>
+                <th>Lucro Financ.</th>
                 <th>Garantia</th>
                 <th>Status</th>
                 <th>Ações</th>
@@ -216,6 +223,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
             </td>
             <td><?= formatarMoeda($v['comissao_vendedor']) ?></td>
+            <td><?= formatarMoeda($v['lucro_financiamento']) ?></td>
             <td>
                 <?php
                 $prazo_d = (int)($v['prazo_garantia_dias'] ?? 0);
@@ -259,7 +267,7 @@ require_once __DIR__ . '/../includes/header.php';
         <?php if (!empty($v['observacoes'])): ?>
         <tr>
             <td></td>
-            <td colspan="8" style="color:#888;font-size:0.72rem;padding-top:0;padding-bottom:10px">
+            <td colspan="9" style="color:#888;font-size:0.72rem;padding-top:0;padding-bottom:10px">
                 💬 <?= nl2br(htmlspecialchars($v['observacoes'])) ?>
             </td>
         </tr>

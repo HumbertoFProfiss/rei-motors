@@ -17,7 +17,7 @@ $erros = [];
 $d = [
     'veiculo_id' => (int)($_GET['veiculo_id'] ?? 0) ?: '', 'cliente_id' => '', 'vendedor_id' => $_SESSION['usuario_id'],
     'forma_pagamento' => 'avista', 'preco_venda' => '', 'desconto_aplicado' => '0',
-    'valor_troca' => '0', 'data_venda' => date('Y-m-d'), 'data_entrega' => '',
+    'valor_troca' => '0', 'lucro_financiamento' => '0', 'data_venda' => date('Y-m-d'), 'data_entrega' => '',
     'status' => 'pendente', 'numero_contrato' => '', 'observacoes' => '',
 ];
 
@@ -49,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $d['preco_venda']       = (float)str_replace(['.', ','], ['', '.'], $_POST['preco_venda'] ?? '0');
     $d['desconto_aplicado'] = (float)str_replace(['.', ','], ['', '.'], $_POST['desconto_aplicado'] ?? '0');
     $d['valor_troca']       = (float)str_replace(['.', ','], ['', '.'], $_POST['valor_troca'] ?? '0');
+    $d['lucro_financiamento'] = (float)str_replace(['.', ','], ['', '.'], $_POST['lucro_financiamento'] ?? '0');
     $d['data_venda']             = sanitizar($_POST['data_venda'] ?? date('Y-m-d'));
     $d['data_entrega']           = !empty($_POST['data_entrega']) ? sanitizar($_POST['data_entrega']) : null;
     $d['prazo_garantia_dias']    = (int)($_POST['prazo_garantia_dias'] ?? 90);
@@ -212,6 +213,13 @@ require_once __DIR__ . '/../includes/header.php';
                            value="<?= number_format((float)$d['valor_troca'], 2, ',', '.') ?>"
                            placeholder="0,00">
                     <span class="form-grupo__hint">Preencha se houver troca de veículo</span>
+                </div>
+                <div class="form-grupo">
+                    <label>Lucro de Financiamento (R$)</label>
+                    <input type="text" name="lucro_financiamento"
+                           value="<?= number_format((float)$d['lucro_financiamento'], 2, ',', '.') ?>"
+                           placeholder="0,00">
+                    <span class="form-grupo__hint">Comissão que a loja recebe do banco/financeira nesta venda. Varia por negociação — deixe 0,00 se não houve financiamento ou comissão.</span>
                 </div>
                 <div class="form-grupo">
                     <label>Forma de Pagamento <span class="obrigatorio">*</span></label>
