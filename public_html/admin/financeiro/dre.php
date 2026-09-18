@@ -34,7 +34,19 @@ $cvv_desp_veic = (float)(obterUmaLinha(
     "SELECT COALESCE(SUM(cv.valor), 0) as t
      FROM custos_veiculo cv
      JOIN vendas vd ON vd.veiculo_id = cv.veiculo_id
-     WHERE YEAR(vd.data_venda) = ? AND vd.status IN ('confirmada','entregue')",
+     WHERE YEAR(vd.data_venda) = ? AND vd.status IN ('confirmada','entregue')
+       AND cv.categoria != 'impostos'",
+    [$ano]
+)['t'] ?? 0);
+
+// 2a-bis. IMPOSTOS — mesma origem (custos_veiculo), mas destacado como linha
+// própria no DRE em vez de ficar misturado nas despesas gerais do veículo
+$cvv_impostos = (float)(obterUmaLinha(
+    "SELECT COALESCE(SUM(cv.valor), 0) as t
+     FROM custos_veiculo cv
+     JOIN vendas vd ON vd.veiculo_id = cv.veiculo_id
+     WHERE YEAR(vd.data_venda) = ? AND vd.status IN ('confirmada','entregue')
+       AND cv.categoria = 'impostos'",
     [$ano]
 )['t'] ?? 0);
 
@@ -52,7 +64,7 @@ $cvv_comissoes = (float)(obterUmaLinha(
     [$ano]
 )['t'] ?? 0);
 
-$cvv_total = $cvv_custo + $cvv_desp_veic + $cvv_garantias + $cvv_comissoes;
+$cvv_total = $cvv_custo + $cvv_desp_veic + $cvv_impostos + $cvv_garantias + $cvv_comissoes;
 
 // 2b. LUCRO DE FINANCIAMENTO — comissão recebida do banco/financeira por venda,
 // valor variável lançado manualmente em cada venda (pode ser 0)
@@ -146,6 +158,10 @@ require_once __DIR__ . '/../includes/header.php';
             <tr>
                 <td style="padding-left:2rem">(-) Despesas nos Veículos (manutenção, etc.)</td>
                 <td style="color:#f44336">(<?= formatarMoeda($cvv_desp_veic) ?>)</td>
+            </tr>
+            <tr>
+                <td style="padding-left:2rem">(-) Impostos</td>
+                <td style="color:#f44336">(<?= formatarMoeda($cvv_impostos) ?>)</td>
             </tr>
             <tr>
                 <td style="padding-left:2rem">(-) Custos de Garantia</td>

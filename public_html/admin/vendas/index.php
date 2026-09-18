@@ -223,7 +223,11 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
             </td>
             <td><?= formatarMoeda($v['comissao_vendedor']) ?></td>
-            <td><?= formatarMoeda($v['lucro_financiamento']) ?></td>
+            <td><?= formatarMoeda($v['lucro_financiamento']) ?>
+                <?php if (!empty($v['banco_financiamento'])): ?>
+                <br><small style="color:#888"><?= htmlspecialchars($v['banco_financiamento']) ?></small>
+                <?php endif; ?>
+            </td>
             <td>
                 <?php
                 $prazo_d = (int)($v['prazo_garantia_dias'] ?? 0);
